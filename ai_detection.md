@@ -65,10 +65,10 @@ That means it stays alive as a multi-threaded service even when the printer is i
 ## Observed config/state when not printing
 - Version: 1.1.0
 - Current config says detection features are off:
-  - is_detect_flag=False
-  - is_pei_check=False
-  - is_foreign_check=False
-  - is_md_check=False
+  - `is_detect_flag=False`
+  - `is_pei_check=False`
+  - `is_foreign_check=False`
+  - `is_md_check=False`
 - Actions are also off:
   - no alarm
   - no pause
