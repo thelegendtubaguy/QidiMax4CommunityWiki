@@ -1,4 +1,10 @@
 # Internal components
+### AP Board
+![AP Board Location](./assets/ap_board_location.jpg)
+![AP Board](./assets/ap_board.jpg)
+
+The AP board is located in the top left of the printer and can be accessed by removing two screws on the top and bottom of the plastic trim.  You do not need to remove anything else to access it, but it is cramped inside.
+
 ### Chamber Heat and Exhaust Fans
 ![Chamber Exhaust and Heater Fans](./assets/chamber_exhaust_heater_fan.jpg)
 
@@ -37,3 +43,11 @@ Fans for the chamber exhaust and the chamber heater are the same.
     * Black
     * Red
     * Blue
+
+### Z Steppers
+![Z Stepper Location](./assets/z_stepper_location.jpg)
+![Z Stepper](./assets/z_stepper.jpg)
+
+The Z axis steppers are located on the underside of the machine.
+* Model: 42HD4027-98
+* Brand: [www.mocotech.cn](http://www.mocotech.cn)
