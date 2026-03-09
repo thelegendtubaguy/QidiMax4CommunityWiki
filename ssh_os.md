@@ -12,6 +12,9 @@ Description:    Debian GNU/Linux 11 (bullseye)
 Release:        11
 Codename:       bullseye
 
+qidi@qidi-max4:/usr/local/bin/algo_app$ cat /etc/debian_version
+11.8
+
 qidi@qidi-max4:~$ uname -a
 Linux qidi-max4 5.10.160 #4 SMP PREEMPT Wed Sep 3 15:21:57 CST 2025 aarch64 GNU/Linux
 ```
