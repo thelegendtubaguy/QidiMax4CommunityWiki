@@ -21,7 +21,8 @@ Fans for the chamber exhaust and the chamber heater are the same.
 * Power: DC 24V 0.25A
 
 ### Motherboard "Schematic"
-![Motherboard Schematic](./assets/qidi_max4_mobo_scheematic.png)
+![Motherboard Schematic](./assets/qidi_max4_mobo_schematic.png)
+
 A previously posted version of this motherboard schematic on Qidi's wiki had the X and Y connectors flipped.  This is the latest version as of March 9th, 2026.
 
 ### Power Supply
