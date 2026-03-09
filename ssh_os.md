@@ -12,7 +12,7 @@ Description:    Debian GNU/Linux 11 (bullseye)
 Release:        11
 Codename:       bullseye
 
-qidi@qidi-max4:/usr/local/bin/algo_app$ cat /etc/debian_version
+qidi@qidi-max4:~$ cat /etc/debian_version
 11.8
 
 qidi@qidi-max4:~$ uname -a
