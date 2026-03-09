@@ -1,6 +1,7 @@
 # Internal components
 ### Chamber Heat and Exhaust Fans
 ![Chamber Exhaust and Heater Fans](./assets/chamber_exhaust_heater_fan.jpg)
+
 Fans for the chamber exhaust and the chamber heater are the same.
 * Brand: [www.qx-cn.com](http://www.qx-cn.com)
 * Model: QX12032B
@@ -8,12 +9,14 @@ Fans for the chamber exhaust and the chamber heater are the same.
 
 ### Motherboard Fan
 ![Motherboard Fan](./assets/motherboard_fan.jpg)
+
 * Brand: [www.qx-cn.com](http://www.qx-cn.com)
 * Model: QX8025M24B
 * Power: DC 24V 0.25A
 
 ### Power Supply
 ![Power Supply](./assets/power_supply.jpg)
+
 * Brand: [www.czchenglian.com](https://www.czchenglian.com)
 * Model: CZL-150D-24E
 * Input: 100-240V 3.4A Max
