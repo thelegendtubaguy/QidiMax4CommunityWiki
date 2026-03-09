@@ -7,7 +7,7 @@ Fans for the chamber exhaust and the chamber heater are the same.
 * Power: DC 24V .5A
 
 ### Motherboard Fan
-[!Motherboard Fan](./assets/motherboard_fan.jpg)
+![Motherboard Fan](./assets/motherboard_fan.jpg)
 * Brand: [www.qx-cn.com](http://www.qx-cn.com)
 * Model: QX8025M24B
 * Power: DC 24V 0.25A
