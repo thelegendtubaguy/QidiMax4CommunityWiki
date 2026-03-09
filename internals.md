@@ -41,8 +41,8 @@ Fans for the chamber exhaust and the chamber heater are the same.
     * Red
 * Output connections to heated bed (left to right):
     * Black
-    * Red
     * Blue
+    * Red
 
 ### Z Steppers
 ![Z Stepper Location](./assets/z_stepper_location.jpg)
