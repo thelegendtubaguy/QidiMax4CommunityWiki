@@ -19,6 +19,8 @@ Fans for the chamber exhaust and the chamber heater are the same.
 * Brand: [www.qx-cn.com](http://www.qx-cn.com)
 * Model: QX8025M24B
 * Power: DC 24V 0.25A
+* Could not locate exact match for specs, but found [document](./assets/QX8025.jpg) showing fans in the same family.
+* Given same family fan only rated at .12A, this fan likely has over 100CFM
 
 ### Motherboard "Schematic"
 ![Motherboard Schematic](./assets/qidi_max4_mobo_schematic.png)
@@ -56,3 +58,12 @@ A previously posted version of this motherboard schematic on Qidi's wiki had the
 The Z axis steppers are located on the underside of the machine.
 * Model: 42HD4027-98
 * Brand: [www.mocotech.cn](http://www.mocotech.cn)
+* Potential specs (could not locate exact model number)
+    - body length: 40 mm
+    - step angle: 1.8 deg
+    - current/phase: 1.5 A
+    - holding torque: 0.400 N.m
+    - shaft: 5 mm D-shaft, 23 mm length
+    - phases: 2
+    - rated voltage: 3.3 V
+    - wiring: coil pairs A-C and B-D
