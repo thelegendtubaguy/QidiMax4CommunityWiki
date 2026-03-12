@@ -4,6 +4,9 @@ The Max 4's shipped with likely a broken OTA check URL.  When you get your Max 4
 > [!NOTE]
 > The file here was titled from Qidi as "NA", likely for "North America".  It's unclear what would be different between this and files for other regions.
 
+> [!WARNING]
+> Either use the included USB drive that came with your printer, or make sure you're using one formatted to FAT32.
+
 1. Create a new folder on your USB drive named `QD_Update`.
 2. Download [this file](https://drive.google.com/file/d/1jeqaue0h2wmIdYBmnp2Eg-6wcQCKLESJ/view?usp=drive_link).  Note that this is stored in TheLegendTubaGuy's Google drive to prevent Qidi shenanigans.
 3. Put the compressed zip file directly into the `QD_Update` folder, do not extract it.
