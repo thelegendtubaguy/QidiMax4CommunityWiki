@@ -21,7 +21,7 @@ See [this page](/docs/ssh_os.md#root-access).
 <a name="how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass"></a>
 ## How do I keep the polar cooler tube from rubbing the glass?
 
-You can use the included cable ties wrapped around the highest points on the tube as Qidi instructs, or [see this](/mods/polar_cooler_things.md#tubing-rubs-on-glass).
+You can use the included cable ties wrapped around the highest points on the tube as Qidi instructs, or [see this](/docs/mods/polar_cooler_things.md#tubing-rubs-on-glass).
 
 <a name="new-max4-ota-updates"></a>
 ## Why are OTA updates not working on my new Max 4?
