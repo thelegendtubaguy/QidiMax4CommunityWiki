@@ -69,7 +69,7 @@ analyzing CPU 0:
   ```
 
 ## Process List
-You can find the stock list of processes [here](./docs/stock_process_list.md).
+You can find the stock list of processes [here](./docs/ssh_os/stock_process_list.md).
 
 ## APT Sources
-You can find the stock list of APT sources [here](./docs/stock_apt_sources.md).
+You can find the stock list of APT sources [here](./docs/ssh_os/stock_apt_sources.md).
