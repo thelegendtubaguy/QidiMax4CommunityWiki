@@ -7,6 +7,7 @@ PRs and additional documentation welcome!
 * [FAQ](./faq.md)
 * [Internals](./internals.md)
 * [Modifications and Upgrades](./mods.md)
+* [Power Usage](./power_usage.md)
 * [System Access and Information](./ssh_os.md)
 
 ## Links to other good documentation
