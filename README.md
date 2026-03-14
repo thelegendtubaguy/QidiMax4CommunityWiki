@@ -3,12 +3,12 @@ This repository is meant to serve as a community run wiki for the Qidi Max 4.  T
 
 PRs and additional documentation welcome!
 
-* [On-Device AI Detection](./ai_detection.md)
-* [FAQ](./faq.md)
-* [Internals](./internals.md)
-* [Modifications and Upgrades](./mods.md)
-* [Power Usage](./power_usage.md)
-* [System Access and Information](./ssh_os.md)
+* [On-Device AI Detection](./docs/ai_detection.md)
+* [FAQ](./docs/faq.md)
+* [Internals](./docs/internals.md)
+* [Modifications and Upgrades](./docs/mods.md)
+* [Power Usage](./docs/power_usage.md)
+* [System Access and Information](./docs/ssh_os.md)
 
 ## Links to other good documentation
 * [Vanilla Klipper and Fluidd config file dump](https://github.com/thelegendtubaguy/Qidi-Max-4-Config-Files/tree/main)

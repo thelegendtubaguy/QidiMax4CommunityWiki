@@ -7,4 +7,4 @@
 
 **Q: It doesn't seem like OTA updates are working on my new Max 4, why?**
 
-**A:** See [this page](./initial_offline_firmware_update.md).
+**A:** See [this page](./docs/faq/initial_offline_firmware_update.md).
