@@ -9,5 +9,5 @@ PRs and additional documentation welcome!
 * [Modifications and Upgrades](./mods.md)
 * [System Access and Information](./ssh_os.md)
 
-## Links to other good documntation
+## Links to other good documentation
 * [Vanilla Klipper and Fluidd config file dump](https://github.com/thelegendtubaguy/Qidi-Max-4-Config-Files/tree/main)
