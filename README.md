@@ -3,10 +3,10 @@ This repository is meant to serve as a community run wiki for the Qidi Max 4.  T
 
 PRs and additional documentation welcome!
 
-* [On-Device AI Detection](./docs/ai_detection.md)
 * [FAQ](./docs/faq.md)
 * [Internals](./docs/internals.md)
 * [Modifications and Upgrades](./docs/mods.md)
+* [On-Device AI Detection](./docs/ai_detection.md)
 * [Power Usage](./docs/power_usage.md)
 * [System Access and Information](./docs/ssh_os.md)
 
