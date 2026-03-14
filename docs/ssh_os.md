@@ -73,3 +73,10 @@ You can find the stock list of processes [here](./ssh_os/stock_process_list.md).
 
 ## APT Sources
 You can find the stock list of APT sources [here](./ssh_os/stock_apt_sources.md).
+
+## Root Access
+
+> [!CAUTION]
+> Use at your own risk!  If you brick your printer, that's a bad day.
+
+If you want to become root, you can do `sudo su` and enter the password `qiditech`.
