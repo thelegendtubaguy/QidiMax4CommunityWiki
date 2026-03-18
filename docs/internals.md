@@ -4,6 +4,12 @@
 ![AP Board](/assets/ap_board.jpg)
 
 The AP board is located in the top left of the printer and can be accessed by removing two screws on the top and bottom of the plastic trim.  You do not need to remove anything else to access it, but it is cramped inside.
+* CPU: 4x ARM Cortex-A35 (aarch64), single socket, single thread per core
+* Clock: 408 MHz min, 1104 MHz max
+* Kernel: Linux 5.10.160 on aarch64
+* RAM: 486 MiB total
+* Swap: 255 MiB total, about 25 MiB in use
+* Storage: 29.1G eMMC (mmcblk1), root uses about 7.7G
 
 ### Chamber Heat and Exhaust Fans
 ![Chamber Exhaust and Heater Fans](/assets/chamber_exhaust_heater_fan.jpg)
