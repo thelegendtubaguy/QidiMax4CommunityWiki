@@ -27,7 +27,7 @@ You can use the included cable ties wrapped around the highest points on the tub
 <a name="max4-closed-loop-step-loss"></a>
 ## I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?
 
-Probably not in the way most people mean. See [this page](./faq/max4_closed_loop_step_loss.md).
+`FOC closed-loop` on the Max 4 appears to mean feedback-based X/Y motor control for smoother, quieter, and more stable motion. The current evidence does not show printer-level detection and recovery from XY position loss such as skipped steps, belt slip, or collisions. See [this page](./faq/max4_closed_loop_step_loss.md) for more information.
 
 <a name="new-max4-ota-updates"></a>
 ## Why are OTA updates not working on my new Max 4?
