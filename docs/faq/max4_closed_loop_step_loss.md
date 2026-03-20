@@ -138,7 +138,122 @@ That tells us two useful things:
 - this is definitely custom Qidi functionality, not stock Klipper behavior
 - most of the interesting logic lives in compiled modules, not plain Python
 
-The class names are also suggestive. `ClosedLoopCurrentHelper` sounds more like state and current management than host-side kinematic correction. `CL_Interface_bitbang` sounds like a custom communication path to the XY closed-loop controllers.
+The first pass at the wrapper names suggested that `ClosedLoopCurrentHelper` might be mostly about state and current management, and that `CL_Interface_bitbang` might just be a transport layer to the XY controllers. Looking at the compiled modules shows more than that.
+
+#### What symbol inspection found
+
+Running `nm -C` against the two compiled modules exposed a large number of Cython symbol names. The most relevant ones were:
+
+```text
+closed_loop_core:
+  cmd_READ_MOTOR_STATUS
+  cmd_READ_CODER_ERROR
+  cmd_SET_STALL_TOLERANCE
+  cmd_CLOSE_TLR_ERROR
+  cmd_OPEN_TLR_ERROR
+  cmd_CLEAR_CODER
+  cmd_COMP_CODER
+  get_status
+  msg_read_coder
+  msg_read_coder_error
+  msg_read_motor_status
+  encoder_alarm
+  phase_loss
+  overcurrent
+  high_temp_alarm
+  stepper_out_of_tolerance_alarm
+  reports_error_state
+  No_response_from_stepper
+
+cl_interface_core:
+  msg_query_motor_status
+  get_status
+  cmd_RESET_MOTOR_POSITION_ERROR
+  msg_reset_motor_position_error
+```
+
+That matters because it is much stronger evidence than the wrapper files alone. It shows host-visible support for:
+
+- motor-status queries
+- coder or encoder-related reads and error handling
+- stall or tolerance configuration
+- alarm and fault reporting
+- a distinct `motor position error` state with an explicit reset command
+
+This moves the evidence past the weaker claim of "probably just smoother FOC commutation."
+
+#### What Python introspection found
+
+Importing the modules inside the printer's Klipper environment exposed these Python-visible classes:
+
+```python
+from klippy.extras import closed_loop_core
+from klippy.extras import cl_interface_core
+
+dir(closed_loop_core)
+# ['ClosedLoop', 'ClosedLoopCurrentHelper', ...]
+
+dir(cl_interface_core)
+# ['CL_Interface_bitbang', 'MotorFirmwareUpgradeHelper', 'PrinterCLMutexes', ...]
+```
+
+The most interesting methods on `ClosedLoopCurrentHelper` were:
+
+```text
+cmd_READ_MOTOR_STATUS
+cmd_READ_CODER_ERROR
+cmd_SET_STALL_TOLERANCE
+cmd_SET_HOMING_MODE
+cmd_SET_HOMING_STATE
+cmd_SET_OPERATING_CURRENT
+cmd_SET_QUERY_CYCLE
+get_status
+msg_read_motor_status
+msg_read_coder
+msg_read_coder_error
+msg_set_the_stall_tolerance
+```
+
+The most interesting methods on `CL_Interface_bitbang` were:
+
+```text
+cmd_RESET_MOTOR_POSITION_ERROR
+get_status
+msg_query_motor_status
+msg_reset_motor_position_error
+register_closedloop_addr
+register_closedloop_name
+send_command
+```
+
+The import path also mattered. `cl_interface_core` does not import cleanly as a top-level module from `~/klipper/klippy/extras`, but it does import from the full Klipper package path:
+
+```bash
+python3 -c "from klippy.extras import cl_interface_core; print(dir(cl_interface_core))"
+```
+
+That is useful to future investigators because many quick one-liners will fail unless they run from `~/klipper` and import through `klippy.extras`.
+
+#### What the binaries do and do not prove
+
+The compiled-module evidence now supports these stronger technical claims:
+
+- The Max 4 has custom host-supervised XY closed-loop support in Klipper.
+- The host talks to separate addressable XY controller devices.
+- The host polls motor status.
+- The system exposes coder or encoder-related operations and error handling.
+- The system exposes stall or tolerance handling.
+- The system exposes multiple alarm states such as encoder alarm, phase loss, overcurrent, and high temperature.
+- The system exposes a `motor position error` condition and a command to reset it.
+
+That is still **not** the same as proving machine-level skipped-step recovery. The evidence currently does **not** show:
+
+- a host-visible absolute XY position value
+- a following-error value returned to the motion planner
+- a code path that feeds corrected real-world XY position back into Klipper kinematics
+- proof that the printer can resume correctly after a belt tooth jump, collision, or gantry displacement during a print
+
+In other words, the binaries strongly suggest real fault and status supervision, including position- or tolerance-related error states, but they do not yet prove planner-level position correction or automatic print recovery.
 
 ### What is known so far
 
@@ -147,19 +262,61 @@ The class names are also suggestive. `ClosedLoopCurrentHelper` sounds more like 
 - The host appears to poll them periodically.
 - The host appears to switch them between homing and working modes.
 - The visible config does not show standard TMC-style direct driver access for X/Y.
+- The compiled modules expose host-visible status, coder, tolerance, and alarm handling.
+- The compiled modules expose a `motor position error` state and a reset path for it.
 
 ### What is not yet shown
 
 The currently visible evidence does **not** show:
 
-- host-visible encoder position
-- following-error data
-- lost-step alarms
+- host-visible encoder position that clearly maps to Klipper XY coordinates
+- following-error data returned in a form that Klipper uses for planner correction
+- a documented lost-step alarm path tied to print recovery logic
 - a code path that feeds corrected real-world XY position back into Klipper's motion planner
 - proof of print-time recovery after a belt skip, collision, or gantry displacement
 
 ### Current investigation status
 
-The current evidence supports this narrower claim: the Max 4 has smart, host-supervised XY closed-loop hardware.
+The current evidence supports a stronger but still limited claim: the Max 4 has host-supervised XY closed-loop hardware with status, coder, tolerance, and fault handling, and it likely can detect at least some internal motor or controller mismatch conditions.
 
-The current evidence does **not** yet support the stronger claim that the printer can detect a real XY positional error during a print and recover automatically.
+The current evidence still does **not** support the strongest claim that the printer can detect a real XY positional error at the machine level, correct Klipper's internal position, and recover a print automatically.
+
+### Notes for future investigation
+
+The next high-value step is to inspect runtime `get_status()` data from both `ClosedLoopCurrentHelper` and `CL_Interface_bitbang` during printer operation. The key question is whether those status objects contain only alarm bits and state flags, or whether they also include measured position, coder counts, following error, or commanded-vs-actual deltas.
+
+Useful clues to look for next:
+
+- `position`
+- `error_count`
+- `coder_error`
+- `alarm`
+- `tolerance`
+- `stall`
+- `state`
+- any measured-versus-commanded position field
+
+Useful commands that already worked during this investigation:
+
+```bash
+nm -C ~/klipper/klippy/extras/closed_loop_core.cpython-39-aarch64-linux-gnu.so | grep -Ei 'step|loss|error|alarm|encoder|position|follow|home|current|state|query'
+nm -C ~/klipper/klippy/extras/cl_interface_core.cpython-39-aarch64-linux-gnu.so | grep -Ei 'step|loss|error|alarm|encoder|position|follow|home|current|state|query|addr|mode'
+
+python3 -c "from klippy.extras import closed_loop_core; print(dir(closed_loop_core.ClosedLoopCurrentHelper))"
+python3 -c "from klippy.extras import cl_interface_core; print(dir(cl_interface_core.CL_Interface_bitbang))"
+```
+
+Commands already tried during this investigation, but not very revealing:
+
+```bash
+python3 -c "from klippy.extras import closed_loop_core; help(closed_loop_core.ClosedLoopCurrentHelper.get_status)"
+python3 -c "from klippy.extras import cl_interface_core; help(cl_interface_core.CL_Interface_bitbang.get_status)"
+```
+
+Those `help()` calls currently reveal only the method signatures:
+
+```text
+get_status(self, eventtime)
+```
+
+They do not expose return fields, docstrings, or any other useful semantics. Future work should therefore focus on runtime probing, decompilation, or tracing how Klipper consumes the returned status dictionaries or objects.
