@@ -1,8 +1,12 @@
 # Max 4 Closed-Loop X/Y Motors and Step Loss
 
-Short answer: probably not in the way most people mean.
+Qidi advertises the Max 4's XY motion system as using `FOC Closed-loop Stepper Motors`. That does not mean the printer can detect lost position and recover from it mid-print. Based on Qidi's own product pages, support material, and the shipped Klipper config, the safer reading is simpler: this is about smarter XY motor control, not proven recovery after a skipped step, belt tooth jump, or collision.
 
-Qidi does advertise the Max 4's XY motion system as using `FOC Closed-loop Stepper Motor`, but that does not automatically mean the printer can detect lost position and recover from it mid-print. Based on Qidi's own product pages, support material, and the shipped Klipper config, the safer assumption is that this feature is about smarter XY motor control, not proven recovery after a serious skipped step, belt tooth jump, or collision.
+## What `FOC closed-loop` is
+
+- On the Max 4, `FOC closed-loop` most likely means the X and Y motors use feedback for motor control.
+- In practice, that should mean smoother motion, less noise, less vibration, and better torque use.
+- It points to smarter motor drive behavior, not to printer-level position correction.
 
 ## What FOC means
 
@@ -20,32 +24,40 @@ In a system like this, the relevant parts are usually:
 - a motor driver or control stage that uses that feedback to time phase current correctly
 - the printer mainboard and host firmware, which still send motion commands
 
-The important distinction is where the feedback loop is closed. For FOC, that loop is typically closed locally at the motor-control or driver level. The feedback is used to control motor phase current and commutation, not necessarily to publish a corrected machine position back to Klipper or the higher-level motion planner.
+The key question is where the feedback loop is closed. With FOC, that loop is usually closed locally at the motor-control or driver level. The feedback is used to control phase current and commutation. It is not necessarily fed back to Klipper or the higher-level motion planner as corrected machine position.
 
-That is why questions about "where the shaft encoder data shows up" can be misleading. In many closed-loop motor systems, that information never appears as a host-visible XY position signal at all. It may stay inside the motor-control path and only be used to make the motor run more smoothly and efficiently.
+## What `FOC closed-loop` is not
 
-That is useful, and it can help a printer run faster and cleaner. It does **not** by itself mean the machine knows the absolute toolhead position at all times.
-
-## What closed-loop likely does here
-
-The most reasonable reading is that the XY steppers use feedback for commutation and torque control, and that Klipper can supervise some operating and homing behavior through Qidi's custom closed-loop interface. In practice, that would show up as smoother motion, quieter operation, better high-speed behavior, and smarter homing behavior rather than as an obvious "recovered from a crash" feature.
-
-## What it probably does not do
-
-`FOC closed-loop` should not be assumed to mean recovery from:
+`FOC closed-loop` should not be taken to mean automatic recovery from:
 
 - belt tooth jumps or belt slip
 - a hard nozzle collision with the print
 - a big external bump to the toolhead
 - any event where the gantry's real position no longer matches the motion planner's assumed position
 
-That kind of recovery needs more than better motor commutation or mode switching. It usually requires a system that can reliably detect a position mismatch at the machine level and then decide how to recover without ruining the print. Qidi does not appear to make that claim for the Max 4, and the config evidence seen so far does not prove it.
+That kind of recovery needs more than better motor commutation or mode switching. It usually needs a system that can reliably detect a position mismatch at the machine level, report it to the motion planner, and decide how to recover without ruining the print. Qidi does not appear to make that claim for the Max 4, and the config evidence seen so far does not prove it.
 
-There is or was a vendor claiming step loss recovery for the Max 4, but that appears to be their interpretation of what "closed-loop" meant from Qidi.
+There is or was a vendor claiming step-loss recovery for the Max 4, but that appears to be their interpretation of what Qidi meant by "closed-loop."
 
-## Technical details
+## What the current evidence supports
 
-The main answer above is still the current conclusion. The details below show why.
+The current evidence supports:
+
+- the Max 4 has custom host-supervised XY closed-loop hardware
+- the host talks to separate X and Y controller devices
+- the host can query status and handle some alarm or error conditions
+- the system likely detects at least some internal motor or controller mismatch conditions
+
+The current evidence does **not** show:
+
+- a host-visible absolute XY position value
+- a following-error value returned to the motion planner
+- a code path that feeds corrected real-world XY position back into Klipper kinematics
+- proof that the printer can resume correctly after a belt tooth jump, collision, or gantry displacement during a print
+
+## Advanced technical details
+
+The rest of this page is the technical evidence behind the summary above.
 
 ### What the config shows
 
@@ -138,7 +150,7 @@ That tells us two useful things:
 - this is definitely custom Qidi functionality, not stock Klipper behavior
 - most of the interesting logic lives in compiled modules, not plain Python
 
-The first pass at the wrapper names suggested that `ClosedLoopCurrentHelper` might be mostly about state and current management, and that `CL_Interface_bitbang` might just be a transport layer to the XY controllers. Looking at the compiled modules shows more than that.
+The wrapper names first suggested that `ClosedLoopCurrentHelper` might mostly handle state and current management, and that `CL_Interface_bitbang` might just be a transport layer to the XY controllers. Looking at the compiled modules shows more than that.
 
 #### What symbol inspection found
 
@@ -172,15 +184,13 @@ cl_interface_core:
   msg_reset_motor_position_error
 ```
 
-That matters because it is much stronger evidence than the wrapper files alone. It shows host-visible support for:
+This shows host-visible support for:
 
 - motor-status queries
 - coder or encoder-related reads and error handling
 - stall or tolerance configuration
 - alarm and fault reporting
 - a distinct `motor position error` state with an explicit reset command
-
-This moves the evidence past the weaker claim of "probably just smoother FOC commutation."
 
 #### What Python introspection found
 
@@ -226,60 +236,25 @@ register_closedloop_name
 send_command
 ```
 
-The import path also mattered. `cl_interface_core` does not import cleanly as a top-level module from `~/klipper/klippy/extras`, but it does import from the full Klipper package path:
+`cl_interface_core` does not import cleanly as a top-level module from `~/klipper/klippy/extras`, but it does import from the full Klipper package path:
 
 ```bash
 python3 -c "from klippy.extras import cl_interface_core; print(dir(cl_interface_core))"
 ```
 
-That is useful to future investigators because many quick one-liners will fail unless they run from `~/klipper` and import through `klippy.extras`.
+### What the binaries do and do not prove
 
-#### What the binaries do and do not prove
+The compiled-module evidence supports these technical claims:
 
-The compiled-module evidence now supports these stronger technical claims:
+- the Max 4 has custom host-supervised XY closed-loop support in Klipper
+- the host talks to separate addressable XY controller devices
+- the host polls motor status
+- the system exposes coder or encoder-related operations and error handling
+- the system exposes stall or tolerance handling
+- the system exposes multiple alarm states such as encoder alarm, phase loss, overcurrent, and high temperature
+- the system exposes a `motor position error` condition and a command to reset it
 
-- The Max 4 has custom host-supervised XY closed-loop support in Klipper.
-- The host talks to separate addressable XY controller devices.
-- The host polls motor status.
-- The system exposes coder or encoder-related operations and error handling.
-- The system exposes stall or tolerance handling.
-- The system exposes multiple alarm states such as encoder alarm, phase loss, overcurrent, and high temperature.
-- The system exposes a `motor position error` condition and a command to reset it.
-
-That is still **not** the same as proving machine-level skipped-step recovery. The evidence currently does **not** show:
-
-- a host-visible absolute XY position value
-- a following-error value returned to the motion planner
-- a code path that feeds corrected real-world XY position back into Klipper kinematics
-- proof that the printer can resume correctly after a belt tooth jump, collision, or gantry displacement during a print
-
-In other words, the binaries strongly suggest real fault and status supervision, including position- or tolerance-related error states, but they do not yet prove planner-level position correction or automatic print recovery.
-
-### What is known so far
-
-- The Max 4 has custom Klipper support for X/Y closed-loop hardware.
-- The host appears to talk to separate addressable X/Y devices.
-- The host appears to poll them periodically.
-- The host appears to switch them between homing and working modes.
-- The visible config does not show standard TMC-style direct driver access for X/Y.
-- The compiled modules expose host-visible status, coder, tolerance, and alarm handling.
-- The compiled modules expose a `motor position error` state and a reset path for it.
-
-### What is not yet shown
-
-The currently visible evidence does **not** show:
-
-- host-visible encoder position that clearly maps to Klipper XY coordinates
-- following-error data returned in a form that Klipper uses for planner correction
-- a documented lost-step alarm path tied to print recovery logic
-- a code path that feeds corrected real-world XY position back into Klipper's motion planner
-- proof of print-time recovery after a belt skip, collision, or gantry displacement
-
-### Current investigation status
-
-The current evidence supports a stronger but still limited claim: the Max 4 has host-supervised XY closed-loop hardware with status, coder, tolerance, and fault handling, and it likely can detect at least some internal motor or controller mismatch conditions.
-
-The current evidence still does **not** support the strongest claim that the printer can detect a real XY positional error at the machine level, correct Klipper's internal position, and recover a print automatically.
+That is still **not** the same as proving machine-level skipped-step recovery.
 
 ### Notes for future investigation
 
@@ -319,4 +294,4 @@ Those `help()` calls currently reveal only the method signatures:
 get_status(self, eventtime)
 ```
 
-They do not expose return fields, docstrings, or any other useful semantics. Future work should therefore focus on runtime probing, decompilation, or tracing how Klipper consumes the returned status dictionaries or objects.
+They do not expose return fields, docstrings, or any other useful semantics. Future work should focus on runtime probing, decompilation, or tracing how Klipper consumes the returned status dictionaries or objects.
