@@ -2,6 +2,7 @@
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
 - [How do I get root access?](#how-do-i-get-root-access)
 - [How do I keep the polar cooler tube from rubbing the glass?](#how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass)
+- [I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?](#max4-closed-loop-step-loss)
 - [Where can I find stock/vanilla Klipper configs after I messed with them?](#stock-klipper-configs)
 - [Why are OTA updates not working on my new Max 4?](#new-max4-ota-updates)
 - [Why don't I see my bed mesh in Fluidd?](#enable-fluidd-bed-mesh)
@@ -22,6 +23,11 @@ See [this page](/docs/ssh_os.md#root-access).
 ## How do I keep the polar cooler tube from rubbing the glass?
 
 You can use the included cable ties wrapped around the highest points on the tube as Qidi instructs, or [see this](/docs/mods/polar_cooler_things.md#tubing-rubs-on-glass).
+
+<a name="max4-closed-loop-step-loss"></a>
+## I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?
+
+Probably not in the way most people mean. See [this page](./faq/max4_closed_loop_step_loss.md).
 
 <a name="new-max4-ota-updates"></a>
 ## Why are OTA updates not working on my new Max 4?
