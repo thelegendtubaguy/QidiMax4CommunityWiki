@@ -8,4 +8,4 @@ These results were measured on a kind of cheap smart outlet at 110v:
 - All On: ~1250 watts
 
 Firmware `01.01.05.04` changed the heated bed max power from 100% to 70%.  The bed is still capable of reaching 120c easily.
-![Heated bed ramp up](/assets/heated_bed_heating.png)
+![Heated bed ramp up](../assets/heated_bed_heating.png)

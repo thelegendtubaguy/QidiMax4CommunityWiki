@@ -12,17 +12,17 @@
 
 No, the design of the printer avoids this entirely.
 
-![Waste Chute Parking](/assets/waste_chute_parking.jpg)
+![Waste Chute Parking](../assets/waste_chute_parking.jpg)
 
 <a name="how-do-i-get-root-access"></a>
 ## How do I get root access?
 
-See [this page](/docs/ssh_os.md#root-access).
+See [this page](./ssh_os.md#root-access).
 
 <a name="how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass"></a>
 ## How do I keep the polar cooler tube from rubbing the glass?
 
-You can use the included cable ties wrapped around the highest points on the tube as Qidi instructs, or [see this](/docs/mods/polar_cooler_things.md#tubing-rubs-on-glass).
+You can use the included cable ties wrapped around the highest points on the tube as Qidi instructs, or [see this](./mods/polar_cooler_things.md#tubing-rubs-on-glass).
 
 <a name="max4-closed-loop-step-loss"></a>
 ## I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?
@@ -39,7 +39,7 @@ See [this page](./faq/initial_offline_firmware_update.md).
 
 You need to check "Enable Full Display" in your Fluidd settings.
 
-![Fluidd Full Display](/assets/fluidd_enable_full_display.png)
+![Fluidd Full Display](../assets/fluidd_enable_full_display.png)
 
 <a name="stock-klipper-configs"></a>
 ## I've messed with my Klipper configs and now I want to go back to stock, how do I do this?
