@@ -11,3 +11,5 @@ If you want a stand and somewhere to collect potential condensate water, [this i
 ## Tubing Rubs on Glass
 
 The silicone tubing that runs to the toolhead doesn't have the greatest path to get there.  It sits above the cable chain towards the toolhead, which makes it suseptible to rubbing on the top glass.  Qidi provides two cable ties that they instruct you to wrap around the tube on the highest points to keep this from happening, but there's a better way.  Get yourself some splippery tape and wrap it around a few different sections of the tubing and it'll work much better than the cable ties.  Something [like this](https://www.amazon.com/dp/B082VHZZNT).  You want it to be relatively thin, lots of UHMW tapes are on the thicker side.  The one linked is good.
+
+![Tape wrapped around the polar cooler tube](../../assets/polar_cooler_tube_tape.jpg)

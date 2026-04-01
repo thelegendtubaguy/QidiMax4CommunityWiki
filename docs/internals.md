@@ -11,6 +11,11 @@ The AP board is located in the top left of the printer and can be accessed by re
 * Swap: 255 MiB total, about 25 MiB in use
 * Storage: 29.1G eMMC (mmcblk1), root uses about 7.7G
 
+### Accessory Connector Daughter Board
+![Accessory Connector Daughter Board](../assets/accessory_connector_daughter_board.jpg)
+
+This daughter board carries the connectors for the Qidi Box, polar cooler, and rear fan.
+
 ### Chamber Heat and Exhaust Fans
 ![Chamber Exhaust and Heater Fans](../assets/chamber_exhaust_heater_fan.jpg)
 
