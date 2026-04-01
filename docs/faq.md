@@ -50,4 +50,4 @@ You need to check "Enable Full Display" in your Fluidd settings.
 <a name="stock-klipper-configs"></a>
 ## I've messed with my Klipper configs and now I want to go back to stock, how do I do this?
 
-You can reference the stock configurations at [this repository](https://github.com/thelegendtubaguy/Qidi-Max-4-Config-Files/tree/main)
+You can reference the stock configurations at [this repository](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults)
