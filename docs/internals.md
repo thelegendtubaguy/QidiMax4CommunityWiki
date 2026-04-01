@@ -56,6 +56,7 @@ A previously posted version of this motherboard schematic on Qidi's wiki had the
     * Black
     * Blue
     * Red
+* Heated bed power wiring: 14 AWG
 
 ### Z Steppers
 ![Z Stepper Location](../assets/z_stepper_location.jpg)
