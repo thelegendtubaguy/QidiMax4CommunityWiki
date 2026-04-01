@@ -1,6 +1,7 @@
 # FAQ
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
 - [How do I get root access?](#how-do-i-get-root-access)
+- [Is the chamber mostly air tight?](#is-the-chamber-mostly-air-tight)
 - [How do I keep the polar cooler tube from rubbing the glass?](#how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass)
 - [I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?](#max4-closed-loop-step-loss)
 - [Where can I find stock/vanilla Klipper configs after I messed with them?](#stock-klipper-configs)
@@ -18,6 +19,11 @@ No, the design of the printer avoids this entirely.
 ## How do I get root access?
 
 See [this page](./ssh_os.md#root-access).
+
+<a name="is-the-chamber-mostly-air-tight"></a>
+## Is the chamber mostly air tight?
+
+No. See [this page](./faq/chamber_air_leaks.md) for more information.
 
 <a name="how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass"></a>
 ## How do I keep the polar cooler tube from rubbing the glass?
