@@ -187,10 +187,12 @@ cl_interface_core:
 This shows host-visible support for:
 
 - motor-status queries
-- coder or encoder-related reads and error handling
+- coder or encoder-related commands and error handling
 - stall or tolerance configuration
 - alarm and fault reporting
 - a distinct `motor position error` state with an explicit reset command
+
+It does **not** show that the host receives a usable encoder-position value or coder count.
 
 #### What Python introspection found
 
@@ -249,10 +251,12 @@ The compiled-module evidence supports these technical claims:
 - the Max 4 has custom host-supervised XY closed-loop support in Klipper
 - the host talks to separate addressable XY controller devices
 - the host polls motor status
-- the system exposes coder or encoder-related operations and error handling
+- the system exposes coder or encoder-related commands, alarms, and error handling
 - the system exposes stall or tolerance handling
 - the system exposes multiple alarm states such as encoder alarm, phase loss, overcurrent, and high temperature
 - the system exposes a `motor position error` condition and a command to reset it
+
+The same evidence does **not** by itself prove that the host has access to a usable encoder-position value, coder count, following error, or commanded-vs-actual position delta.
 
 That is still **not** the same as proving machine-level skipped-step recovery.
 
