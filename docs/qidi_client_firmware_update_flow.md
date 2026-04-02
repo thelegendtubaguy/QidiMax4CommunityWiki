@@ -1,59 +1,106 @@
 # QIDI Client Firmware Update Flow
 
-This note summarizes what can be confirmed about how the Max 4 checks for and applies online firmware updates.
+This note records how the Max 4 checks for online firmware updates.
 
-The version string `01.01.06.01` is used below as a concrete example because it appears directly in observed client data.
+It is written so future reverse-engineering work can start from facts instead of redoing the same static analysis and replay tests.
 
 ## Summary
 
-- opening the firmware page triggers the update check immediately
-- `qidiclient` reads `/home/qidi/update/firmware_manifest.json` on firmware-page entry
-- `currentVersion` is most likely the local `SOC.version` from that manifest
-- `deviceId` is most likely derived locally from machine hardware identity and matched the uppercase CPU serial on the observed printer
-- the request goes to `/backend/v1/fireware/upgrade-info?hardware=QD_MAX4&currentVersion=<...>&deviceId=<...>`
-- in the observed session, the request went to `https://api.qidimaker.com`
-- the request uses signed QIDI headers and is not just a bare public GET
-- `X-Version` appears to be a client or API version, not the printer firmware version
-- `X-Signature` is required, but does not appear to be directly bound to `X-Timestamp`, `X-Nonce`, or `currentVersion`
-- the response includes update metadata plus separate URLs for release notes and the actual firmware ZIP
-- the returned `description` URL was not actually the release notes for the returned printer firmware version
-- the observed package URL used `https://public-cdn.qidimaker.com`
-- the ZIP is then downloaded to `/home/qidi/download/online_update.zip` and applied from there
+- Opening the firmware page triggers the online version check immediately.
+- The client binary is `QIDI_Client/bin/qidiclient`.
+- The firmware check endpoint is `GET /backend/v1/fireware/upgrade-info`.
+- The path uses QIDI's misspelling `fireware`, not `firmware`.
+- `currentVersion` comes from the local SOC firmware version.
+- `deviceId` is the uppercase CPU serial from `/proc/cpuinfo`.
+- The same value is sent in both the query string `deviceId` and the `X-DeviceId` header.
+- The request includes QIDI-specific headers: `X-DeviceType`, `X-Nonce`, `X-Platform`, `X-Region`, `X-Signature`, `X-Timestamp`, `X-Timezone`, and `X-Version`.
+- `X-Signature` is generated locally by the client with `HMAC-SHA256`, hex-encoded.
+- The key string embedded in the client is `qid3d-from-2025-CAFE-BABE`.
+- The replayable signing payload that worked in testing is `qidi3d null`.
+- For this endpoint, the backend currently appears to only require `X-Signature` to be present and non-empty. It did not reject a dummy signature in live tests.
+- A clearly fake `currentVersion` such as `00.00.00.00` does not reliably return the latest firmware.
+- A plausible older firmware version such as `01.01.05.01` does return the current version `01.01.06.01`.
+- The returned package URL points at `https://public-cdn.qidimaker.com`.
+- The returned `description` URL is not necessarily the release notes for the returned firmware package.
+- The downloaded package is written to `/home/qidi/download/online_update.zip` before the client starts the online update flow.
+
+## Confirmed Working Result
+
+Using:
+
+- `hardware=QD_MAX4`
+- `currentVersion=01.01.05.01`
+- `deviceId=<UPPERCASE_CPU_SERIAL>`
+- `X-DeviceType: X-MAX4`
+- `X-Platform: 3DPrinter`
+- `X-Region: NA`
+- `X-Timezone: +00:00`
+- `X-Version: 01.01`
+- `User-Agent: xindi/4.4.23`
+- `X-Signature: 6cdc129f40dc668a61f190fe19f71d2fcaef2554f72855f604559f3f1135ae01`
+
+the endpoint returned:
+
+```json
+{
+  "code": 200,
+  "message": "返回成功",
+  "data": {
+    "version": "01.01.06.01",
+    "url": "https://public-cdn.qidimaker.com/upgrade/3DPrinter/QD_MAX4/01.01.06.01/ezhm9tcgyk/QD_MAX4_01.01.06.01_20260312_Release.zip",
+    "description": "https://wiki.qidi3d.com/en/software/qidi-studio/release-notes/release-note-02-04-01-11",
+    "needUpdate": true,
+    "title": "update",
+    "isForce": false,
+    "apkSize": "243.88 MB"
+  }
+}
+```
+
+Using the same request shape with `currentVersion=01.01.06.01` returned `needUpdate: false`.
 
 ## High-Level Flow
 
-1. Opening the firmware page triggers a version check immediately.
+1. Opening the firmware page triggers the check immediately.
 2. `qidiclient` reads `/home/qidi/update/firmware_manifest.json`.
-3. It uses the local `SOC.version` from that manifest as `currentVersion`.
-4. It builds a signed request to `/backend/v1/fireware/upgrade-info?hardware=QD_MAX4&currentVersion=<...>&deviceId=<...>`.
-5. In the observed session, that request went to `https://api.qidimaker.com` over HTTPS.
-6. The API returned update metadata including firmware version, package URL, release-notes URL, `needUpdate`, `isForce`, and package size.
-7. If an update is needed, the client downloads the package to `/home/qidi/download/online_update.zip`.
-8. The client then starts the online update from that ZIP.
+3. The client takes the local SOC firmware version and uses it as `currentVersion`.
+4. The client reads the CPU serial from `/proc/cpuinfo`, uppercases it, and uses it as `deviceId`.
+5. The client builds a GET request to `/backend/v1/fireware/upgrade-info?hardware=QD_MAX4&currentVersion=<...>&deviceId=<...>`.
+6. The client attaches the QIDI headers listed below.
+7. The API returns update metadata including `version`, `url`, `description`, `needUpdate`, `isForce`, and `apkSize`.
+8. If an update is needed, the client downloads the ZIP to `/home/qidi/download/online_update.zip`.
+9. The client starts the online update from the downloaded ZIP.
 
-## What Is Still Unconfirmed
-
-- the exact signature algorithm
-- the exact canonicalized input used for `X-Signature`
-- whether any canonicalized signing input includes fields beyond the ones already ruled out by live replay tests
-- whether all firmware revisions derive `deviceId` the same way
-
-## Technical Details
-
-### Evidence Source
+## Evidence Sources
 
 These findings come from:
 
-- string inspection of `qidi_client/bin/qidiclient`
-- live `qidiclient` logs while opening the firmware page
-- a live packet capture while opening the firmware page
-- a live `openat` trace of `qidiclient`
-- targeted static disassembly of the request-construction path
-- readable request and state strings recovered from live process memory
+- string inspection of `QIDI_Client/bin/qidiclient`
+- targeted static disassembly of the request path
+- targeted pseudocode recovery with `radare2`
+- live replay tests against QIDI's API
+- live client logs
+- packet captures
 
-### Firmware Page Trigger
+## Function Map
 
-The live client log shows that entering the firmware page triggers the request:
+These addresses are the useful entry points inside `QIDI_Client/bin/qidiclient`.
+
+| Address | Role | Notes |
+| --- | --- | --- |
+| `0x00621f44` | firmware request builder | Builds `/backend/v1/fireware/upgrade-info?...` |
+| `0x0061d0c0` | common header builder | Appends the QIDI request headers |
+| `0x006991c0` | device ID retrieval path | Called by the firmware request builder before appending `deviceId` |
+| `0x006b9790` | CPU serial reader | Shells out to read `/proc/cpuinfo` |
+| `0x006b9124` | uppercase helper | Uppercases the serial with `toupper` |
+| `0x0065ab00` | signature wrapper | High-level `X-Signature` helper |
+| `0x0065a8a0` | HMAC helper | Calls `EVP_sha256` and `HMAC(...)` |
+| `0x0065a4f0` | digest formatter | Hex-encodes the digest via `std::stringstream` |
+| `0x0061b280` | signature input canonicalizer | Normalizes whitespace and prefixes `qidi3d ` |
+
+## Firmware Page Trigger
+
+The live client log showed:
 
 ```text
 page to -> Page_Firmware
@@ -61,46 +108,41 @@ page to -> Page_Firmware
 [HTTP] Func: [版本请求成功]
 ```
 
-So the version request happens when the firmware page is opened, not only after pressing a separate update button.
+So the online firmware check happens when the firmware page is opened.
 
-### Update Check Path
+## Endpoint Path
 
-The binary contains this exact path string:
+The request builder at `0x00621f44` contains these literal fragments:
 
 ```text
 /backend/v1/fireware/upgrade-info?hardware=
-```
-
-The same string cluster also contains:
-
-```text
 QD_MAX4
 &currentVersion=
 &deviceId=
 ```
 
-So the request shape is:
+So the request path is:
 
 ```text
 <api-base>/backend/v1/fireware/upgrade-info?hardware=QD_MAX4&currentVersion=<...>&deviceId=<...>
 ```
 
-The endpoint uses QIDI's `fireware` spelling rather than `firmware`.
+The path name is spelled `fireware` in both the client and the server API.
 
-### API Hosts
+## API Hosts
 
-The binary contains these API base hosts:
+The binary contains both of these base hosts:
 
 ```text
 https://api.qidimaker.com
 https://api-cn.qidi3dprinter.com
 ```
 
-The observed live session used `https://api.qidimaker.com`.
+The live replay work in this repo used `https://api.qidimaker.com`.
 
-### Where `currentVersion` Comes From
+## Where `currentVersion` Comes From
 
-The client binary directly references:
+The client references:
 
 ```text
 /home/qidi/update/
@@ -108,9 +150,7 @@ The client binary directly references:
 firmware_manifest.json
 ```
 
-An `openat` trace shows `qidiclient` reading that file when the firmware page is opened.
-
-On the observed printer, the manifest contained:
+The manifest contained values like:
 
 ```text
 SOC.version = 01.01.06.01
@@ -121,29 +161,37 @@ BOX.version = 02.03.01.21
 CLOSED_LOOP_MOTOR.version = 03.01.10.13
 ```
 
-That is the strongest current evidence that `currentVersion` comes from the local SOC package version in `firmware_manifest.json`, not from one of the individual component versions.
+`currentVersion` is the SOC package version
 
-### Where `deviceId` Comes From
+## Where `deviceId` Comes From
 
-The observed live request used the same value in both places:
+The helper at `0x006b9790` shells out with this exact command string:
 
-- the query-string `deviceId`
-- the `X-DeviceId` request header
+```text
+cat /proc/cpuinfo | grep Serial| awk '{printf "%s", substr($0, index($0, ":") + 2)}'
+```
 
-On the observed machine, that value matched the uppercase CPU serial recovered from live process memory.
+The next helper at `0x006b9124` uppercases the result with `toupper`.
 
-So the best current read is:
+So the firmware request `deviceId` is the uppercase CPU serial.
 
-- the printer derives `deviceId` locally from machine hardware identity
-- on the observed Max 4, that identity matched the uppercase CPU serial
+You can read the raw serial on the printer with:
 
-The actual device ID is intentionally omitted here.
+```bash
+grep -m1 '^Serial' /proc/cpuinfo
+```
 
-This is stronger evidence than earlier guesses involving Moonraker's `instance_id` or a purely cloud-assigned identifier.
+The firmware request uses the uppercase form of that value.
 
-### Observed Request Shape
+On the observed machine, the same uppercase CPU serial appeared in both:
 
-Readable strings recovered from live process memory exposed this request form, with machine-unique identifiers redacted:
+- query string `deviceId`
+- header `X-DeviceId`
+
+
+## Observed Request Shape
+
+The request shape, with machine-unique values redacted, is:
 
 ```text
 GET https://api.qidimaker.com/backend/v1/fireware/upgrade-info?hardware=QD_MAX4&currentVersion=01.01.06.01&deviceId=DEVICE_ID_REDACTED
@@ -163,69 +211,182 @@ X-Timezone: +00:00
 X-Version: 01.01
 ```
 
-The same recovered request fragments also showed HTTP/2.
+## Header Semantics
 
-### Request Validation And Auth
+What is now confirmed:
 
-The endpoint is not a bare public URL. Direct probes without the expected headers returned HTTP `401` errors and complained about missing headers in this order:
+- `X-DeviceId` is the uppercase CPU serial.
+- `X-DeviceType` is `X-MAX4`.
+- `X-Platform` is `3DPrinter`.
+- `X-Region` was `NA` in the observed device profile.
+- `X-Timezone` was `+00:00` in the observed request.
+- `X-Version` is `01.01` in the observed request.
+- `User-Agent` is `xindi/4.4.23` in the observed request.
+- `Accept-Language` is `zh_CN` in the observed request.
+
+What `X-Version` is not:
+
+- It is not the current SOC firmware version.
+- It remained `01.01` while `currentVersion` was `01.01.06.01`.
+
+Treat `X-Version` as a client or API profile version.
+
+## Signature Generation
+
+### Crypto Primitive
+
+The signature helper chain is:
+
+- `0x0065ab00` high-level wrapper
+- `0x0065a8a0` HMAC helper
+- `0x0065a4f0` digest formatter
+
+`0x0065a8a0` calls `EVP_sha256` and then `HMAC(...)`.
+
+So `X-Signature` is an `HMAC-SHA256` digest.
+
+`0x0065a4f0` formats the digest as lowercase hex text.
+
+### Embedded Key Material
+
+The firmware request path at `0x00621f44` loads this hardcoded string before calling the common header builder:
 
 ```text
-X-Timestamp
-X-DeviceType
-X-Signature
-X-Platform
-Accept-Language
-X-Timezone
+qid3d-from-2025-CAFE-BABE
 ```
 
-That shows the firmware check uses a signed request profile.
+### Canonicalized Input
 
-The binary supports `Authorization: Bearer <accessToken>`, but the observed printer was unbound and the captured firmware-check request did not include an `Authorization` header. In that observed case, the request relied on the signed QIDI headers instead.
+The helper at `0x0061b280` canonicalizes the signing input by trimming and compacting whitespace and then prefixing:
 
-### What The Live Replay Tests Clarify
+```text
+qidi3d 
+```
 
-Two points are now much clearer from live testing:
+The replayable input that matched the client path and worked against the live endpoint is:
 
-- `X-Version` is not the printer firmware version
-- `X-Signature` is not tied to `X-Timestamp`, `X-Nonce`, or `currentVersion` in the obvious way
+```text
+qidi3d null
+```
 
-#### `X-Signature`
+From that, the reproducible signature is:
 
-The exact signature algorithm is still unknown.
+```text
+6cdc129f40dc668a61f190fe19f71d2fcaef2554f72855f604559f3f1135ae01
+```
 
-But live testing showed that the same `X-Signature` still worked after changing all of the following:
+Equivalent shell command:
 
-- `X-Timestamp` to a fresh value
-- `X-Nonce` to a fresh value
-- `currentVersion` from `01.01.06.01` to `01.01.05.04`
+```bash
+printf '%s' 'qidi3d null' | \
+  openssl dgst -sha256 -hmac 'qid3d-from-2025-CAFE-BABE' -binary | \
+  od -An -tx1 | tr -d ' \n'
+```
 
-That means `X-Signature` is very likely not a simple hash or HMAC over:
+### Important Server-Side Behavior
 
-- `X-Timestamp`
-- `X-Nonce`
-- `currentVersion`
+The client clearly implements HMAC generation, but the `upgrade-info` endpoint currently does not appear to verify it strictly.
 
-The best current possibilities are:
+The backend doesn't appear to validate this signature value in any way, other than that it exists.
 
-- a static app-secret-derived token
-- a signature over a smaller fixed set of fields
-- a value derived from some device-level state that does not change per request
+- no `X-Signature` header: rejected
+- non-empty dummy `X-Signature`: accepted
+- reproduced HMAC `X-Signature`: also accepted
 
-#### `X-Version`
+## Replay Matrix
 
-`X-Version` appears to be a client or API version, not the firmware package version.
+### Signature Presence
 
-Evidence:
+Without `X-Signature`, the API returned `401` with:
 
-- live request fragments consistently showed `X-Version: 01.01`
-- `currentVersion` came from the local firmware manifest and was `01.01.06.01`
-- the API still returned a valid response when `currentVersion` was changed to `01.01.05.04` while `X-Version` remained `01.01`
+```json
+{"code":2009,"message":"X-Signature missing in request header"}
+```
 
-So `X-Version` should be treated as independent of the printer firmware version.
+With a dummy non-empty signature, the request was accepted.
 
-### Observed Response Shape
+With the reproduced HMAC signature, the request was also accepted.
 
-Using the recovered request shape and headers, the endpoint returned update metadata like this:
+### Version Plausibility
+
+Using a fake version such as:
+
+```text
+00.00.00.00
+```
+
+returned:
+
+```json
+{"needUpdate":false,"version":null,"url":null}
+```
+
+Using real older version such as:
+
+```text
+01.01.05.01
+```
+
+returned the current package:
+
+```text
+01.01.06.01
+```
+
+### Region Handling
+
+These region results were observed against the live endpoint:
+
+- `NA`: accepted
+- `APAC`: accepted
+- `EEA`: accepted
+- `CN`: rejected with `code: 2018`
+- `OTHERS`: rejected with `code: 2018`
+
+The binary still contains the separate China API base host, so host selection and header region selection are likely related but not identical concerns.
+
+## Exact curl Reproduction
+
+```bash
+DEVICE_ID="<UPPERCASE_CPU_SERIAL>"
+TS=$(($(date +%s%N)/1000000))
+NONCE=$(openssl rand -hex 16)
+SIG=$(printf '%s' 'qidi3d null' | \
+  openssl dgst -sha256 -hmac 'qid3d-from-2025-CAFE-BABE' -binary | \
+  od -An -tx1 | tr -d ' \n')
+
+curl -sS --get "https://api.qidimaker.com/backend/v1/fireware/upgrade-info" \
+  --data-urlencode "hardware=QD_MAX4" \
+  --data-urlencode "currentVersion=01.01.05.01" \
+  --data-urlencode "deviceId=${DEVICE_ID}" \
+  -H "User-Agent: xindi/4.4.23" \
+  -H "Accept: */*" \
+  -H "Accept-Language: zh_CN" \
+  -H "Content-Type: application/json" \
+  -H "X-DeviceId: ${DEVICE_ID}" \
+  -H "X-DeviceType: X-MAX4" \
+  -H "X-Nonce: ${NONCE}" \
+  -H "X-Platform: 3DPrinter" \
+  -H "X-Region: NA" \
+  -H "X-Signature: ${SIG}" \
+  -H "X-Timestamp: ${TS}" \
+  -H "X-Timezone: +00:00" \
+  -H "X-Version: 01.01"
+```
+
+## Response Shape
+
+The metadata response includes:
+
+- `version`
+- `url`
+- `description`
+- `needUpdate`
+- `title`
+- `isForce`
+- `apkSize`
+
+Example:
 
 ```json
 {
@@ -243,35 +404,26 @@ Using the recovered request shape and headers, the endpoint returned update meta
 }
 ```
 
-In the observed response, the `description` field pointed to:
+The package host and the metadata host are different.
+
+- metadata host: `api.qidimaker.com`
+- package host: `public-cdn.qidimaker.com`
+
+## Release Notes URL Mismatch
+
+The `description` field is not a trustworthy firmware-release-notes pointer.
+
+In the successful replay above, the API returned:
 
 ```text
 https://wiki.qidi3d.com/en/software/qidi-studio/release-notes/release-note-02-04-01-11
 ```
 
-That is not actually the release notes page for the returned printer firmware version. The best current read is that QIDI populated `description` with an unrelated or generic QIDI Studio release-notes page.
+That is a QIDI Studio page, not a printer firmware release notes page for `01.01.06.01`.
 
-That confirms the split between:
+## Download And Apply Behavior
 
-- the update metadata endpoint
-- the release-notes URL
-- the actual firmware ZIP download URL
-
-That separation is normal for this kind of update flow.
-
-### Download Host
-
-In the observed live response, the actual package URL used:
-
-```text
-https://public-cdn.qidimaker.com
-```
-
-So the update metadata host and the package download host are separate, which is normal.
-
-### Download And Apply Behavior
-
-The binary logs contain:
+The binary logs contain these update-flow strings:
 
 ```text
 Starting incremental online update from url: {}
@@ -284,10 +436,10 @@ Online update completed
 Online update failed
 ```
 
-That supports this behavior:
+That supports this sequence:
 
-1. call the `upgrade-info` endpoint
-2. parse the metadata response
-3. take the package URL from that response
-4. download the ZIP to `/home/qidi/download/online_update.zip`
-5. start the online update from the downloaded ZIP
+1. call `upgrade-info`
+2. parse update metadata
+3. download the returned ZIP
+4. save it as `/home/qidi/download/online_update.zip`
+5. start the online update flow from that ZIP
