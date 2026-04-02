@@ -4,6 +4,7 @@ This repository is meant to serve as a community run wiki for the Qidi Max 4.  T
 PRs and additional documentation welcome!
 
 * [FAQ](./docs/faq.md)
+* [Error Messages](./docs/error_messages.md)
 * [Firmware Update Flow](./docs/qidi_client_firmware_update_flow.md)
 * [Certifications](./docs/certifications.md)
 * [Internals](./docs/internals.md)
