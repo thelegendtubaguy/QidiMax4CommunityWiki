@@ -1,69 +1,49 @@
 # Max 4 Closed-Loop X/Y Motors and Step Loss
 
-Qidi advertises the Max 4's XY motion system as using `FOC Closed-loop Stepper Motors`. That does not mean the printer can detect lost position and recover from it mid-print. Based on Qidi's own product pages, support material, and the shipped Klipper config, the safer reading is simpler: this is about smarter XY motor control, not proven recovery after a skipped step, belt tooth jump, or collision.
+Qidi advertises the Max 4's XY motion system as using `FOC closed-loop stepper motors`. The shipped config, custom Klipper modules, and runtime logs show the printer has host-visible XY closed-loop hardware, periodic status polling, coder-related values, and fault handling tied to those values. The Max 4 does **NOT** have position/step-loss correction/recovery.
 
-## What `FOC closed-loop` is
+On the Max 4, `FOC closed-loop` is best read as motor-level feedback and supervision for the X and Y motors.
 
-- On the Max 4, `FOC closed-loop` most likely means the X and Y motors use feedback for motor control.
-- In practice, that should mean smoother motion, less noise, less vibration, and better torque use.
-- It points to smarter motor drive behavior, not to printer-level position correction.
+## Reading `FOC Closed-Loop`
 
-## What FOC means
-
-FOC stands for **field-oriented control**. It is a motor-control method that uses rotor position feedback and current control to drive the motor phases more precisely. In plain English, that usually means:
+FOC stands for **field-oriented control**. It is a motor-control method that uses rotor-position feedback and current control to drive the motor phases more precisely. In practice, that usually means:
 
 - smoother commutation
-- better torque use for a given motor and current
 - quieter operation
-- less vibration and better behavior at higher speed
+- less vibration
+- better torque use
+- better behavior at higher speed
 
-In a system like this, the relevant parts are usually:
+The key distinction is where the loop closes. On the Max 4, the available material is consistent with a loop that closes at the motor-controller level. The controller uses feedback to run the motor.  Klipper does not receive corrected cartesian position.
 
-- the XY stepper motor itself
-- some form of rotor-position feedback device, often discussed as an encoder or angle sensor
-- a motor driver or control stage that uses that feedback to time phase current correctly
-- the printer mainboard and host firmware, which still send motion commands
-
-The key question is where the feedback loop is closed. With FOC, that loop is usually closed locally at the motor-control or driver level. The feedback is used to control phase current and commutation. It is not necessarily fed back to Klipper or the higher-level motion planner as corrected machine position.
-
-## What `FOC closed-loop` is not
-
-`FOC closed-loop` should not be taken to mean automatic recovery from:
-
-- belt tooth jumps or belt slip
-- a hard nozzle collision with the print
-- a big external bump to the toolhead
-- any event where the gantry's real position no longer matches the motion planner's assumed position
-
-That kind of recovery needs more than better motor commutation or mode switching. It usually needs a system that can reliably detect a position mismatch at the machine level, report it to the motion planner, and decide how to recover without ruining the print. Qidi does not appear to make that claim for the Max 4, and the config evidence seen so far does not prove it.
-
-There is or was a vendor claiming step-loss recovery for the Max 4, but that appears to be their interpretation of what Qidi meant by "closed-loop."
-
-## What the current evidence supports
-
-The current evidence supports:
+## Observed Capabilities
 
 - the Max 4 has custom host-supervised XY closed-loop hardware
-- the host talks to separate X and Y controller devices
-- the host can query status and handle some alarm or error conditions
-- the system likely detects at least some internal motor or controller mismatch conditions
+- the host talks to separate X and Y controller devices over a vendor-specific interface
+- the host can poll those controllers periodically
+- the host can read motor status and coder-related data
+- the host can log a numeric coder value for each motor
+- the host can trigger shutdown when a coder-related threshold is exceeded
+- the system exposes a `motor position error` condition and a command to reset it
 
-The current evidence does **not** show:
+Runtime logs can show host-visible numeric coder output after running `COMP_CODER STEPPER=y`:
 
-- a host-visible absolute XY position value
-- a following-error value returned to the motion planner
-- a code path that feeds corrected real-world XY position back into Klipper kinematics
-- proof that the printer can resume correctly after a belt tooth jump, collision, or gantry displacement during a print
+- `Stepper y coder value: -29300`
+- `Transition to shutdown state: Stepper y coder value -29300 exceeds threshold 1000, please check the stepper status`
 
-## Advanced technical details
+This means smarter motor drive behavior and host-visible fault supervision. It does not mean the machine is capable of correcting Klipper's cartesian XY position during a print.
 
-The rest of this page is the technical evidence behind the summary above.
+## CoreXY Interpretation
 
-### What the config shows
+The Max 4 is a CoreXY machine, so cartesian X and Y motion do not map 1:1 to individual motor motion.
 
-The Max 4 does appear to expose more than plain `step/dir/enable` for X and Y.
+An X-only cartesian move can still rotate the `stepper_y` motor. Because of that, a changed `Stepper y coder value` after mixed XY jogging is not, by itself, evidence of spontaneous Y drift or a false alarm. Motor-level coder deltas have to be interpreted through CoreXY motor mixing.
 
-The shipped config contains dedicated X/Y closed-loop sections:
+## Technical Basis
+
+### Shipped config
+
+The shipped config exposes more than plain `step/dir/enable` for X and Y. It contains dedicated X/Y closed-loop sections:
 
 ```ini
 [cl_interface]
@@ -87,7 +67,11 @@ microstep: 32
 query_cycle: 5
 ```
 
-That strongly suggests the host talks to dedicated X/Y closed-loop controllers over a vendor-specific interface. The `addr` values imply separate addressable devices, and `query_cycle` implies the host polls them periodically.
+That supports three direct observations:
+
+- the host talks to dedicated X/Y closed-loop controllers
+- those controllers are separately addressable
+- the host polls them on a regular interval
 
 At the same time, the normal kinematics still include standard X/Y stepper definitions:
 
@@ -101,11 +85,9 @@ rotation_distance: 39
 full_steps_per_rotation: 200
 ```
 
-No standard `[tmc2209 stepper_x]` or `[tmc2209 stepper_y]` blocks were found. The only visible `tmc2209` sections are for the two Z steppers.
+No standard `[tmc2209 stepper_x]` or `[tmc2209 stepper_y]` blocks were found. The only visible `tmc2209` sections are for the two Z steppers. That means X and Y are not exposed like a typical Klipper plus TMC setup where `DUMP_TMC` can read driver registers directly.
 
-That means X and Y are not exposed like a typical Klipper + TMC setup where `DUMP_TMC` can read driver registers directly.
-
-### What the homing macros show
+### Homing macros
 
 The homing macros switch X and Y between homing and working states:
 
@@ -116,9 +98,9 @@ SET_HOMING_MODE  STEPPER=y VALUE=2
 SET_HOMING_MODE  STEPPER=x VALUE=2
 ```
 
-That is stronger evidence for "Klipper talks to the XY closed-loop hardware" than the plain `[stepper_x]` and `[stepper_y]` blocks alone. It suggests the host can at least supervise state, current, or behavior changes for the X/Y controllers during homing.
+That shows Klipper can do more than send plain step pulses. It can supervise at least some X/Y closed-loop controller state during homing.
 
-### What the Klipper modules show
+### Custom Klipper modules
 
 The Max 4's Klipper tree includes custom extras for the closed-loop system:
 
@@ -145,16 +127,9 @@ def load_config(config):
     return cl_interface_core.CL_Interface_bitbang(config)
 ```
 
-That tells us two useful things:
+This is custom Qidi functionality, most of which lives in compiled modules.
 
-- this is definitely custom Qidi functionality, not stock Klipper behavior
-- most of the interesting logic lives in compiled modules, not plain Python
-
-The wrapper names first suggested that `ClosedLoopCurrentHelper` might mostly handle state and current management, and that `CL_Interface_bitbang` might just be a transport layer to the XY controllers. Looking at the compiled modules shows more than that.
-
-#### What symbol inspection found
-
-Running `nm -C` against the two compiled modules exposed a large number of Cython symbol names. The most relevant ones were:
+Symbol inspection of those compiled modules exposes names such as:
 
 ```text
 closed_loop_core:
@@ -184,19 +159,15 @@ cl_interface_core:
   msg_reset_motor_position_error
 ```
 
-This shows host-visible support for:
+This likely means:
 
-- motor-status queries
-- coder or encoder-related commands and error handling
-- stall or tolerance configuration
-- alarm and fault reporting
-- a distinct `motor position error` state with an explicit reset command
+- the host can query motor status
+- the system exposes coder or encoder-related commands and error handling
+- the system exposes tolerance and stall handling
+- the system exposes multiple alarm states
+- the system exposes a distinct `motor position error` condition with an explicit reset command
 
-It does **not** show that the host receives a usable encoder-position value or coder count.
-
-#### What Python introspection found
-
-Importing the modules inside the printer's Klipper environment exposed these Python-visible classes:
+Python introspection shows these classes:
 
 ```python
 from klippy.extras import closed_loop_core
@@ -209,7 +180,7 @@ dir(cl_interface_core)
 # ['CL_Interface_bitbang', 'MotorFirmwareUpgradeHelper', 'PrinterCLMutexes', ...]
 ```
 
-The most interesting methods on `ClosedLoopCurrentHelper` were:
+The most relevant methods on `ClosedLoopCurrentHelper` are:
 
 ```text
 cmd_READ_MOTOR_STATUS
@@ -226,7 +197,7 @@ msg_read_coder_error
 msg_set_the_stall_tolerance
 ```
 
-The most interesting methods on `CL_Interface_bitbang` were:
+The most relevant methods on `CL_Interface_bitbang` are:
 
 ```text
 cmd_RESET_MOTOR_POSITION_ERROR
@@ -238,63 +209,40 @@ register_closedloop_name
 send_command
 ```
 
-`cl_interface_core` does not import cleanly as a top-level module from `~/klipper/klippy/extras`, but it does import from the full Klipper package path:
+### Runtime behavior
 
-```bash
-python3 -c "from klippy.extras import cl_interface_core; print(dir(cl_interface_core))"
+Recent runtime logs after running `COMP_CODER STEPPER=x`, `COMP_CODER STEPPER=y`, moving the head, and then running one of those commands again showed:
+
+```text
+Stepper y coder value: -29300
+Transition to shutdown state: Stepper y coder value -29300 exceeds threshold 1000, please check the stepper status
+cl_send oid=0 write=b'\xfa\x031.'
+cl_idx_rx rx_data=b'\xfb\x031\xff\xff\xff\xff\x8d\x8cD'
 ```
+`COMP_CODER` is a real vendor command path, the host can receive a numeric motor-level coder value, the closed-loop path is not limited to status bits alone, the firmware will force a shutdown when a coder-related threshold is exceeded
 
-### What the binaries do and do not prove
+### Bus details
 
-The compiled-module evidence supports these technical claims:
+The X/Y closed-loop bus appears to use RS485 at `38400`, with `0xfa` request framing, `0xfb` response framing, `0x37` for motor-status queries, `0x40` for encoder-position queries, and commands such as `READ_MOTOR_CURRENT`, `READ_MOTOR_TEMP`, and `COMP_CODER`.
 
-- the Max 4 has custom host-supervised XY closed-loop support in Klipper
-- the host talks to separate addressable XY controller devices
-- the host polls motor status
-- the system exposes coder or encoder-related commands, alarms, and error handling
-- the system exposes stall or tolerance handling
-- the system exposes multiple alarm states such as encoder alarm, phase loss, overcurrent, and high temperature
-- the system exposes a `motor position error` condition and a command to reset it
+Live traffic shows `0xfa` request framing and `0xfb` response framing, the host logs numeric coder output, threshold-based shutdown is visible, and the `COMP_CODER`, `0x37`, and `0x40` paths fit the current runtime evidence.
 
-The same evidence does **not** by itself prove that the host has access to a usable encoder-position value, coder count, following error, or commanded-vs-actual position delta.
+## Details Still Unverified
 
-That is still **not** the same as proving machine-level skipped-step recovery.
+The available material still does not establish these details:
 
-### What one external reverse-engineering note adds
+- what fields `get_status()` returns at runtime
+- the exact units, scaling, and sign conventions for the observed coder values
+- how `COMP_CODER` compares commanded and measured motor position
+- what threshold and hysteresis logic are used before shutdown
+- what `READ_MOTOR_CURRENT` and `READ_MOTOR_TEMP` return in practice
+- whether `M84` changes the X/Y controller current or only host-side state
 
-One community reverse-engineering note adds a few concrete protocol claims that are worth checking, but not treating as established fact yet.
+Those unknowns affect implementation details and make it challenging to proceed further.
 
-That note claims:
+## Reference Commands
 
-- the X/Y closed-loop bus is RS485
-- the initial baud rate is `38400`
-- request packets start with `0xfa` and responses with `0xfb`
-- `0x37` is used for motor-status queries
-- `0x40` is used for an encoder-position query
-- commands such as `READ_MOTOR_CURRENT`, `READ_MOTOR_TEMP`, and `COMP_CODER` exist and appear relevant to the X/Y closed-loop system
-
-Those details fit the broader picture already documented here: separate addressable X/Y controller devices, periodic polling, and host-visible alarm or status handling. The note does **not** include raw packet captures, log excerpts, command output, or code snippets that independently prove the claims, so they should be treated as investigation leads rather than hard evidence.
-
-### Notes for future investigation
-
-The next high-value step is to inspect runtime `get_status()` data from both `ClosedLoopCurrentHelper` and `CL_Interface_bitbang` during printer operation. The key question is whether those status objects contain only alarm bits and state flags, or whether they also include measured position, coder counts, following error, or commanded-vs-actual deltas.
-
-Useful clues to look for next:
-
-- `position`
-- `error_count`
-- `coder_error`
-- `alarm`
-- `tolerance`
-- `stall`
-- `state`
-- any measured-versus-commanded position field
-- confirmation that the bus is RS485 at `38400`
-- raw captures for the claimed `0x37` status query and `0x40` encoder-position query
-- command output for `READ_MOTOR_CURRENT`, `READ_MOTOR_TEMP`, and `COMP_CODER`
-- whether `M84` changes the X/Y controllers' real current or only the host-side state
-
-Useful commands that already worked during this investigation:
+The observations above came from commands such as:
 
 ```bash
 nm -C ~/klipper/klippy/extras/closed_loop_core.cpython-39-aarch64-linux-gnu.so | grep -Ei 'step|loss|error|alarm|encoder|position|follow|home|current|state|query'
@@ -304,17 +252,17 @@ python3 -c "from klippy.extras import closed_loop_core; print(dir(closed_loop_co
 python3 -c "from klippy.extras import cl_interface_core; print(dir(cl_interface_core.CL_Interface_bitbang))"
 ```
 
-Commands already tried during this investigation, but not very revealing:
+The following probes were less revealing:
 
 ```bash
 python3 -c "from klippy.extras import closed_loop_core; help(closed_loop_core.ClosedLoopCurrentHelper.get_status)"
 python3 -c "from klippy.extras import cl_interface_core; help(cl_interface_core.CL_Interface_bitbang.get_status)"
 ```
 
-Those `help()` calls currently reveal only the method signatures:
+Those `help()` calls only exposed the method signature:
 
 ```text
 get_status(self, eventtime)
 ```
 
-They do not expose return fields, docstrings, or any other useful semantics. Future work should focus on runtime probing, decompilation, or tracing how Klipper consumes the returned status dictionaries or objects.
+They did not expose return fields, docstrings, or other semantics.
