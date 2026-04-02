@@ -260,6 +260,21 @@ The same evidence does **not** by itself prove that the host has access to a usa
 
 That is still **not** the same as proving machine-level skipped-step recovery.
 
+### What one external reverse-engineering note adds
+
+One community reverse-engineering note adds a few concrete protocol claims that are worth checking, but not treating as established fact yet.
+
+That note claims:
+
+- the X/Y closed-loop bus is RS485
+- the initial baud rate is `38400`
+- request packets start with `0xfa` and responses with `0xfb`
+- `0x37` is used for motor-status queries
+- `0x40` is used for an encoder-position query
+- commands such as `READ_MOTOR_CURRENT`, `READ_MOTOR_TEMP`, and `COMP_CODER` exist and appear relevant to the X/Y closed-loop system
+
+Those details fit the broader picture already documented here: separate addressable X/Y controller devices, periodic polling, and host-visible alarm or status handling. The note does **not** include raw packet captures, log excerpts, command output, or code snippets that independently prove the claims, so they should be treated as investigation leads rather than hard evidence.
+
 ### Notes for future investigation
 
 The next high-value step is to inspect runtime `get_status()` data from both `ClosedLoopCurrentHelper` and `CL_Interface_bitbang` during printer operation. The key question is whether those status objects contain only alarm bits and state flags, or whether they also include measured position, coder counts, following error, or commanded-vs-actual deltas.
@@ -274,6 +289,10 @@ Useful clues to look for next:
 - `stall`
 - `state`
 - any measured-versus-commanded position field
+- confirmation that the bus is RS485 at `38400`
+- raw captures for the claimed `0x37` status query and `0x40` encoder-position query
+- command output for `READ_MOTOR_CURRENT`, `READ_MOTOR_TEMP`, and `COMP_CODER`
+- whether `M84` changes the X/Y controllers' real current or only the host-side state
 
 Useful commands that already worked during this investigation:
 
