@@ -10,6 +10,7 @@ PRs and additional documentation welcome!
 * [Error Messages](./docs/error_messages.md)
 * [Firmware Update Flow](./docs/qidi_client_firmware_update_flow.md)
 * [Certifications](./docs/certifications.md)
+* [Fan Assignments](./docs/fan_assignments.md)
 * [Internals](./docs/internals.md)
 * [Modifications and Upgrades](./docs/mods.md)
 * [On-Device AI Detection](./docs/ai_detection.md)

@@ -9,6 +9,8 @@
 - [Why is my bed skirt warping?](#bed-skirt-warping)
 - [Why don't I see my bed mesh in Fluidd?](#enable-fluidd-bed-mesh)
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
+- [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
+- [How do I turn the polar cooler on and off via the console or gcode?](#polar-cooler-console-gcode)
 
 <a name="max4-toolhead-wall-hit-q2"></a>
 ## Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?
@@ -65,3 +67,13 @@ You can reference the stock configurations at [this repository](https://github.c
 You can use the Qidi Box's heater, but do **not** use the drying function while printing.  The printer explicitly states that the filament must be unloaded prior to using the drying functiion as it will rotate the spools.
 
 ![Qidi Box warning against using the drying function while printing](../assets/qidi_box_drying_warning.jpg)
+
+<a name="fan-control-console-gcode"></a>
+## How do I control the fans via the console or gcode? What are all the fan addresses?
+
+See [this page](./fan_assignments.md).
+
+<a name="polar-cooler-console-gcode"></a>
+## How do I turn the polar cooler on and off via the console or gcode?
+
+See [this page](./fan_assignments.md).
