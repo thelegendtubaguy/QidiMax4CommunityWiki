@@ -3,7 +3,7 @@ This repository is meant to serve as a community run wiki for the Qidi Max 4.  T
 
 PRs and additional documentation welcome!
 
-> [!TIP]
+> [!NOTE]
 > No links in this repo will be affiliate links.
 
 * [FAQ](./docs/faq.md)
