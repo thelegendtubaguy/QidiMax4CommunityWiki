@@ -13,4 +13,4 @@ If yours is warping and causing you problems, reach out to `max4support@qidi3d.c
 
 In order to replace the bed skirt, you will need to disconnect the heated bed and status LED light cabling at the back of the machine because the wires pass through the middle of the bed skirt. Remove the heated bed by undoing the four nuts in the corners underneath the bed. The skirt is attached using screws from the top of the bed around all edges.
 
-See the [internals page](../internals.md#motherboard-schematic) for where the heated bed connections are at.
+See the [internals page](../internals.md#relay-switching-board-ssr) for where the heated bed connections are at.
