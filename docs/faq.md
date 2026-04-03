@@ -6,7 +6,9 @@
 - [I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?](#max4-closed-loop-step-loss)
 - [Where can I find stock/vanilla Klipper configs after I messed with them?](#stock-klipper-configs)
 - [Why are OTA updates not working on my new Max 4?](#new-max4-ota-updates)
+- [Why is my bed skirt warping?](#bed-skirt-warping)
 - [Why don't I see my bed mesh in Fluidd?](#enable-fluidd-bed-mesh)
+- [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 
 <a name="max4-toolhead-wall-hit-q2"></a>
 ## Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?
@@ -40,6 +42,11 @@ You can use the included cable ties wrapped around the highest points on the tub
 
 See [this page](./faq/initial_offline_firmware_update.md).
 
+<a name="bed-skirt-warping"></a>
+## Why is my bed skirt warping?
+
+See [this page](./faq/bed_skirt_warping.md).
+
 <a name="enable-fluidd-bed-mesh"></a>
 ## Why don't I see my bed mesh in Fluidd?
 
@@ -51,3 +58,10 @@ You need to check "Enable Full Display" in your Fluidd settings.
 ## I've messed with my Klipper configs and now I want to go back to stock, how do I do this?
 
 You can reference the stock configurations at [this repository](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults)
+
+<a name="qidi-box-drying-while-printing"></a>
+## Can I use the Qidi Box's drying function while printing?
+
+You can use the Qidi Box's heater, but do **not** use the drying function while printing.  The printer explicitly states that the filament must be unloaded prior to using the drying functiion as it will rotate the spools.
+
+![Qidi Box warning against using the drying function while printing](../assets/qidi_box_drying_warning.jpg)
