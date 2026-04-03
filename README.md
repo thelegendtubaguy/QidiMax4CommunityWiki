@@ -3,6 +3,9 @@ This repository is meant to serve as a community run wiki for the Qidi Max 4.  T
 
 PRs and additional documentation welcome!
 
+> [!TIP]
+> No links in this repo will be affiliate links.
+
 * [FAQ](./docs/faq.md)
 * [Error Messages](./docs/error_messages.md)
 * [Firmware Update Flow](./docs/qidi_client_firmware_update_flow.md)
@@ -14,4 +17,5 @@ PRs and additional documentation welcome!
 * [System Access and Information](./docs/ssh_os.md)
 
 ## Links to other good documentation
-* [Vanilla Klipper and Fluidd config file dump](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults)
+* [Qidi Max 4 Firmware Tracker](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults/releases)
+* [Stock Klipper and Fluidd config file dump](https://github.com/thelegendtubaguy/Qidi-Max4-Defaults)
