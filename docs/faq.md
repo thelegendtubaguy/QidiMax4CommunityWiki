@@ -12,6 +12,7 @@
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 - [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
 - [How do I turn the polar cooler on and off via the console or gcode?](#polar-cooler-console-gcode)
+- [Where is the WiFi antenna located?](#wifi-antenna-location)
 
 <a name="max4-toolhead-wall-hit-q2"></a>
 ## Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?
@@ -83,3 +84,10 @@ See [this page](./fan_assignments.md).
 ## How do I turn the polar cooler on and off via the console or gcode?
 
 See [this page](./fan_assignments.md).
+
+<a name="wifi-antenna-location"></a>
+## Where is the WiFi antenna located?
+
+It comes off the AP board in the top left of the printer and goes toward the front.  It's the small black wire circled in red below.
+
+![WiFi antenna location](../assets/wifi_antenna_location.png)
