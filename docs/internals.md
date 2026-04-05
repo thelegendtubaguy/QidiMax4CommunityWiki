@@ -16,6 +16,9 @@ The AP board is located in the top left of the printer and can be accessed by re
 
 This daughter board carries the connectors for the Qidi Box, polar cooler, and rear fan.
 
+### Max 4 Qidi Box Hub
+See [this page](./max_4_qidi_box_hub.md).
+
 ### Chamber Heat and Exhaust Fans
 ![Chamber Exhaust and Heater Fans](../assets/chamber_exhaust_heater_fan.jpg)
 
