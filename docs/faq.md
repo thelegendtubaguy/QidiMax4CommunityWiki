@@ -10,6 +10,7 @@
 - [Why is my bed skirt warping?](#bed-skirt-warping)
 - [Why don't I see my bed mesh in Fluidd?](#enable-fluidd-bed-mesh)
 - [Is the Qidi Box hub that comes with the Max 4 the same as the Q2 and/or Plus 4?](#max4-qidi-box-hub-same-q2-plus4)
+- [How do I remove the output PTFE tube from the box hub?](#remove-output-ptfe-tube-box-hub)
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 - [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
 - [How do I turn the polar cooler on and off via the console or gcode?](#polar-cooler-console-gcode)
@@ -73,6 +74,11 @@ You can reference the stock configurations at [this repository](https://github.c
 ## Is the Qidi Box hub that comes with the Max 4 the same as the Q2 and/or Plus 4?
 
 No, it is not. A LOT of people are under the impression it's the same as the Q2.  It is not.  See [this page](./max_4_qidi_box_hub.md).
+
+<a name="remove-output-ptfe-tube-box-hub"></a>
+## How do I remove the output PTFE tube from the box hub?
+
+See [this page](./max_4_qidi_box_hub.md#why-is-it-hell-to-get-the-output-ptfe-tube-disconencted).
 
 <a name="qidi-box-drying-while-printing"></a>
 ## Can I use the Qidi Box's drying function while printing?
