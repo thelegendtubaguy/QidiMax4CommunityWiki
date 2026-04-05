@@ -72,7 +72,7 @@ You can reference the stock configurations at [this repository](https://github.c
 <a name="max4-qidi-box-hub-same-q2-plus4"></a>
 ## Is the Qidi Box hub that comes with the Max 4 the same as the Q2 and/or Plus 4?
 
-No, it is not. See [this page](./max_4_qidi_box_hub.md).
+No, it is not. A LOT of people are under the impression it's the same as the Q2.  It is not.  See [this page](./max_4_qidi_box_hub.md).
 
 <a name="qidi-box-drying-while-printing"></a>
 ## Can I use the Qidi Box's drying function while printing?
