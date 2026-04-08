@@ -1,6 +1,7 @@
 # FAQ
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
+- [How can I make sure that spool runout with the Qidi Box will do what I want?](#qidi-box-spool-runout-behavior)
 - [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
 - [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
 - [How do I get root access?](#how-do-i-get-root-access)
@@ -31,6 +32,17 @@ You can use the Qidi Box's heater, but do **not** use the drying function while 
 No, the design of the printer avoids this entirely.
 
 ![Waste Chute Parking](../assets/waste_chute_parking.jpg)
+
+<a name="qidi-box-spool-runout-behavior"></a>
+## How can I make sure that spool runout with the Qidi Box will do what I want?
+
+In Fluidd, open `Control Box`. Click `AUTO` on the active spool to see the automatic reload cycle that will run after spool runout. Click `CONFIG` to turn `Automatic Reload` on or off.
+
+![Qidi Box Control Box overview](../assets/qidi_box_control_box.png)
+
+![Qidi Box automatic reload cycle](../assets/qidi_box_control_box_auto_reload.png)
+
+![Qidi Box config settings](../assets/qidi_box_control_box_settings.png)
 
 <a name="fan-control-console-gcode"></a>
 ## How do I control the fans via the console or gcode? What are all the fan addresses?
