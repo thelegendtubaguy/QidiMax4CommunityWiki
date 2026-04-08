@@ -2,6 +2,7 @@
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
 - [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
+- [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
 - [How do I get root access?](#how-do-i-get-root-access)
 - [How do I keep the polar cooler tube from rubbing the glass?](#how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass)
 - [How do I remove the output PTFE tube from the box hub?](#remove-output-ptfe-tube-box-hub)
@@ -35,6 +36,11 @@ No, the design of the printer avoids this entirely.
 ## How do I control the fans via the console or gcode? What are all the fan addresses?
 
 See [this page](./fan_assignments.md).
+
+<a name="how-do-i-adjust-the-belts-on-the-max-4"></a>
+## How do I adjust the belts on the Max 4?
+
+The Max 4 uses auto tensioners. See [this page](https://wiki.qidi3d.com/en/Max4/Adjustment-belt).
 
 <a name="how-do-i-get-root-access"></a>
 ## How do I get root access?
