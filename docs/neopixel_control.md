@@ -337,3 +337,14 @@ You can also use the dedicated breathing commands:
 NEOPIXEL_BREATH_ON R=0 G=255 B=255 P=2000 T=20
 NEOPIXEL_BREATH_OFF
 ```
+
+## Where this comes from
+
+The NeoPixel behavior described on this page comes from Qidi's modified `neopixel.py` file on the printer itself:
+
+```
+/home/qidi/klipper/klippy/extras/neopixel.py
+```
+
+That file is where the extra commands, presets, automatic modes, and print progress behavior are implemented.
+If you're looking to add functionality to the strip, you should look there!
