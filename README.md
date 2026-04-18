@@ -10,6 +10,7 @@ PRs and additional documentation welcome!
 * [Fan Assignments](./docs/fan_assignments.md)
 * [Internals](./docs/internals.md)
 * [Modifications and Upgrades](./docs/mods.md)
+* [NeoPixel Control](./docs/neopixel_control.md)
 * [On-Device AI Detection](./docs/ai_detection.md)
 * [Power Usage](./docs/power_usage.md)
 * [System Access and Information](./docs/ssh_os.md)

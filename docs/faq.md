@@ -3,6 +3,7 @@
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
 - [How can I make sure that spool runout with the Qidi Box will do what I want?](#qidi-box-spool-runout-behavior)
 - [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
+- [Can I control the RGB light under the heated bed?](#rgb-light-under-heated-bed)
 - [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
 - [How do I get root access?](#how-do-i-get-root-access)
 - [How do I keep the polar cooler tube from rubbing the glass?](#how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass)
@@ -48,6 +49,11 @@ In Fluidd, open `Control Box`. Click `AUTO` on the active spool to see the autom
 ## How do I control the fans via the console or gcode? What are all the fan addresses?
 
 See [this page](./fan_assignments.md).
+
+<a name="rgb-light-under-heated-bed"></a>
+## Can I control the RGB light under the heated bed?
+
+Yes. See [NeoPixel Control](./neopixel_control.md).
 
 <a name="how-do-i-adjust-the-belts-on-the-max-4"></a>
 ## How do I adjust the belts on the Max 4?
