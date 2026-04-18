@@ -23,3 +23,21 @@ To disable:
 ```
 sudo systemctl disable --now xl2tpd
 ```
+
+## Algo App
+Qidi ships an AI/video service as `algo_app.service`. If you do not use the detection features, disabling it reduces background activity and removes its LAN-exposed API from the running system.
+
+To disable:
+```
+sudo systemctl disable --now algo_app.service
+```
+
+To check if it is running:
+```
+systemctl status algo_app.service
+```
+
+To re-enable later:
+```
+sudo systemctl enable --now algo_app.service
+```
