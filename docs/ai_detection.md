@@ -34,6 +34,8 @@ That means it stays alive as a multi-threaded service even when the printer is i
 - `PYTHONPATH` points at the app dir
 - `LD_LIBRARY_PATH` points at `/usr/local/bin/algo_app/_internal/lib`
 
+If you want to check, stop, disable, or re-enable the service, see [Process Hardening and Optimizations](./mods/process_hardening_optimiztion.md).
+
 ## Resource policy
 - `Nice=19` - intentionally deprioritized
 - `CPUAffinity=3` - pinned to CPU core 3 only
