@@ -23,6 +23,9 @@ It is written so future reverse-engineering work can start from facts instead of
 - The returned package URL points at `https://public-cdn.qidimaker.com`.
 - The returned `description` URL is not necessarily the release notes for the returned firmware package.
 - The downloaded package is written to `/home/qidi/download/online_update.zip` before the client starts the online update flow.
+- In `/home/qidi/printer_data/config`, entries that look like leftover config paths after an update can be symlinks rather than real standalone files or directories.
+- `KAMP` resolves to `/home/qidi/Klipper-Adaptive-Meshing-Purging/Configuration`.
+- `fluidd.cfg` resolves to `/home/qidi/fluidd-config/client.cfg`.
 
 ## Confirmed Working Result
 
@@ -443,3 +446,12 @@ That supports this sequence:
 3. download the returned ZIP
 4. save it as `/home/qidi/download/online_update.zip`
 5. start the online update flow from that ZIP
+
+## Symlinked Paths That Can Mislead Upgrade Inspection
+
+Verified on the printer with `ls -la /home/qidi/printer_data/config`, the config directory currently contains these symlinks:
+
+- `KAMP -> /home/qidi/Klipper-Adaptive-Meshing-Purging/Configuration`
+- `fluidd.cfg -> /home/qidi/fluidd-config/client.cfg`
+
+That explains why `KAMP` can appear to still be around after an update. It is not an independent directory that somehow survived the upgrade; it is a symbolic link into the active KAMP configuration tree. The same logic applies to `fluidd.cfg`: it is an alias to the active Fluidd client config, not a separate copy.
