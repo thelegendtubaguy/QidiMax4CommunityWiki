@@ -68,7 +68,7 @@ See [this page](./ssh_os.md#root-access).
 <a name="how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass"></a>
 ## How do I keep the polar cooler tube from rubbing the glass?
 
-You can use the included cable ties wrapped around the highest points on the tube as Qidi instructs, or [see this](./mods/polar_cooler_things.md#tubing-rubs-on-glass).
+You can use the included cable ties wrapped around the highest points on the tube as Qidi instructs, or [see the tube routing section here](./polar_cooler.md#tubing-rubs-on-glass).
 
 <a name="remove-output-ptfe-tube-box-hub"></a>
 ## How do I remove the output PTFE tube from the box hub?
@@ -83,7 +83,7 @@ See [our page about Z offset](./faq/z_offset.md).
 <a name="polar-cooler-console-gcode"></a>
 ## How do I turn the polar cooler on and off via the console or gcode?
 
-See [this page](./fan_assignments.md).
+See [the polar cooler control section](./polar_cooler.md#console-and-gcode-control).
 
 <a name="max4-closed-loop-step-loss"></a>
 ## I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?

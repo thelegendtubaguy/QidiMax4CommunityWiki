@@ -12,6 +12,7 @@ PRs and additional documentation welcome!
 * [Modifications and Upgrades](./docs/mods.md)
 * [NeoPixel Control](./docs/neopixel_control.md)
 * [On-Device AI Detection](./docs/ai_detection.md)
+* [Polar Cooler](./docs/polar_cooler.md)
 * [Power Usage](./docs/power_usage.md)
 * [System Access and Information](./docs/ssh_os.md)
 
