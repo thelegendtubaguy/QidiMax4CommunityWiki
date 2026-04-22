@@ -15,12 +15,6 @@ The polar cooler is exposed in Qidi's config as `Polar_cooler` on `M106 P4`.
 
 See [Fan Assignments](./fan_assignments.md) for the full fan and output mapping.
 
-## Internals
-
-The polar cooler connector lives on the accessory connector daughter board, which also carries the Qidi Box and rear fan connectors.
-
-![Accessory Connector Daughter Board](../assets/accessory_connector_daughter_board.jpg)
-
 ## Mods
 
 ### Get More Air
