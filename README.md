@@ -8,6 +8,7 @@ PRs and additional documentation welcome!
 * [Firmware Update Flow](./docs/qidi_client_firmware_update_flow.md)
 * [Certifications](./docs/certifications.md)
 * [Fan Assignments](./docs/fan_assignments.md)
+* [Heated Bed Screws](./docs/heated_bed_screws.md)
 * [Internals](./docs/internals.md)
 * [Modifications and Upgrades](./docs/mods.md)
 * [NeoPixel Control](./docs/neopixel_control.md)

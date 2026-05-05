@@ -5,6 +5,7 @@
 - [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
 - [Can I control the RGB light under the heated bed?](#rgb-light-under-heated-bed)
 - [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
+- [How do I adjust the heat bed corner screws?](#how-do-i-adjust-the-heat-bed-corner-screws)
 - [How do I get root access?](#how-do-i-get-root-access)
 - [How do I keep the polar cooler tube from rubbing the glass?](#how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass)
 - [How do I remove the output PTFE tube from the box hub?](#remove-output-ptfe-tube-box-hub)
@@ -59,6 +60,11 @@ Yes. See [NeoPixel Control](./neopixel_control.md).
 ## How do I adjust the belts on the Max 4?
 
 The Max 4 uses auto tensioners. See [this page](https://wiki.qidi3d.com/en/Max4/Adjustment-belt).
+
+<a name="how-do-i-adjust-the-heat-bed-corner-screws"></a>
+## How do I adjust the heat bed corner screws?
+
+See [this page](./heated_bed_screws.md).
 
 <a name="how-do-i-get-root-access"></a>
 ## How do I get root access?
