@@ -11,5 +11,5 @@
 ## Software
 
 * [Klipper and Slicer GCode optimizations](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized)
-* [Making qidiclient suck less](./making_qidiclient_suck_less.md)
+* [Making qidiclient suck less](./making_qidiclient_suck_less.md) (reduces CPU usage)
 * [Process Hardening and Optimization](./mods/process_hardening_optimiztion.md)
