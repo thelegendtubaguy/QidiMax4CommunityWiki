@@ -13,8 +13,8 @@ SSH to the printer, then run:
 curl -fsSL https://raw.githubusercontent.com/thelegendtubaguy/QidiMax4CommunityWiki/main/scripts/install_qidiclient_static_gifs.sh | sudo bash
 ```
 
-The script downloads [`files/qidiclient-static-gifs.tar.gz`](../files/qidiclient-static-gifs.tar.gz) from this repository, backs up the current GIFs to `/home/qidi/QIDI_Client/access/.gif-backup-<timestamp>`, installs the replacements, and restarts `qidi-client.service`.
+The script downloads [`files/qidiclient-static-gifs.tar.gz`](../../files/qidiclient-static-gifs.tar.gz) from this repository, backs up the current GIFs to `/home/qidi/QIDI_Client/access/.gif-backup-<timestamp>`, installs the replacements, and restarts `qidi-client.service`.
 
-`sudo` may prompt for the printer password. The stock password is documented in [System Access and Information](./ssh_os.md).
+`sudo` may prompt for the printer password. The stock password is documented in [System Access and Information](../ssh_os.md).
 
-Static replacement GIFs are stored in [`files/qidiclient-static-gifs`](../files/qidiclient-static-gifs/), with paths matching `/home/qidi/QIDI_Client/access` if you want to copy them yourself manually.
+Static replacement GIFs are stored in [`files/qidiclient-static-gifs`](../../files/qidiclient-static-gifs/), with paths matching `/home/qidi/QIDI_Client/access` if you want to copy them yourself manually.

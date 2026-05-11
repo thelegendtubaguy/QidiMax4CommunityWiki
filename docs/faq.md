@@ -14,6 +14,7 @@
 - [I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?](#max4-closed-loop-step-loss)
 - [Is the chamber mostly air tight?](#is-the-chamber-mostly-air-tight)
 - [Is the Qidi Box hub that comes with the Max 4 the same as the Q2 and/or Plus 4?](#max4-qidi-box-hub-same-q2-plus4)
+- [Is there a way to reduce CPU usage?](#reduce-cpu-usage)
 - [Where can I download the original models that Qidi shipped with the machine?](#download-original-models)
 - [Where can I find stock/vanilla Klipper configs after I messed with them?](#stock-klipper-configs)
 - [Where is the WiFi antenna located?](#wifi-antenna-location)
@@ -105,6 +106,11 @@ No. See [this page](./faq/chamber_air_leaks.md) for more information.
 ## Is the Qidi Box hub that comes with the Max 4 the same as the Q2 and/or Plus 4?
 
 No, it is not. A LOT of people are under the impression it's the same as the Q2.  It is not.  See [this page](./max_4_qidi_box_hub.md).
+
+<a name="reduce-cpu-usage"></a>
+## Is there a way to reduce CPU usage?
+
+Yes, there are two easy ways to reduce CPU usage. See [process hardening and optimizations](./mods/process_hardening_optimiztion.md#optimizations).
 
 <a name="download-original-models"></a>
 ## Where can I download the original models that Qidi shipped with the machine?
