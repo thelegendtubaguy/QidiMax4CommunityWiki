@@ -18,6 +18,7 @@
 - [Where can I download the original models that Qidi shipped with the machine?](#download-original-models)
 - [Where can I find stock/vanilla Klipper configs after I messed with them?](#stock-klipper-configs)
 - [Where is the WiFi antenna located?](#wifi-antenna-location)
+- [Why is the printer not respecting my DHCP DNS settings?](#dhcp-dns-settings)
 - [Why are OTA updates not working on my new Max 4?](#new-max4-ota-updates)
 - [Why don't I see my bed mesh in Fluidd?](#enable-fluidd-bed-mesh)
 - [Why is my bed skirt warping?](#bed-skirt-warping)
@@ -128,6 +129,11 @@ You can reference the stock configurations at [this repository](https://github.c
 It comes off the AP board in the top left of the printer and goes toward the front.  It's the small black wire circled in red below.
 
 ![WiFi antenna location](../assets/wifi_antenna_location.png)
+
+<a name="dhcp-dns-settings"></a>
+## Why is the printer not respecting my DHCP DNS settings?
+
+See [DNS Resolution](./mods/process_hardening_optimiztion.md#dns-resolution) in the process hardening doc.
 
 <a name="new-max4-ota-updates"></a>
 ## Why are OTA updates not working on my new Max 4?

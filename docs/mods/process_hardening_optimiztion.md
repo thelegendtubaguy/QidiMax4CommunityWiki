@@ -15,6 +15,69 @@ deb http://deb.debian.org/debian bullseye-updates main contrib
 deb-src http://deb.debian.org/debian bullseye-updates main contrib
 ```
 
+### DNS Resolution
+
+Some QIDI images ship `/etc/resolv.conf` as a static file with hardcoded public resolvers instead of a symlink to `resolvconf` output. In that state libc uses the static file directly, so DHCP DNS collected by `dhcpcd`/`resolvconf` is ignored.
+
+Observed stock resolver path:
+
+```text
+glibc/nsswitch: files dns
+        ↓
+/etc/resolv.conf
+        ↓
+114.114.114.114 first, 8.8.8.8 fallback
+```
+
+The stock file may also include `options edns0 trust-ad`. `trust-ad` does not validate DNSSEC on the printer; it preserves the upstream resolver's Authenticated Data bit, which means the printer is trusting the recursive resolver's assertion.  And with `114.114.114.114` being a Chinese DNS server, this is sketchy.
+
+To use DHCP/router DNS first, with Cloudflare and Google DNS as fallbacks:
+
+```bash
+sudo cp -a /etc/resolv.conf /etc/resolv.conf.qidi-static.backup
+sudo cp -a /etc/resolvconf/resolv.conf.d/head /etc/resolvconf/resolv.conf.d/head.backup 2>/dev/null || true
+sudo cp -a /etc/resolvconf/resolv.conf.d/tail /etc/resolvconf/resolv.conf.d/tail.backup 2>/dev/null || true
+
+# Do not prepend DNS before DHCP-provided servers.
+sudo sh -c ': > /etc/resolvconf/resolv.conf.d/head'
+
+# Use public DNS only after DHCP-provided DNS.
+sudo tee /etc/resolvconf/resolv.conf.d/tail >/dev/null <<'EOF'
+nameserver 1.1.1.1
+nameserver 8.8.8.8
+EOF
+
+# Regenerate resolver config and point libc at resolvconf.
+sudo resolvconf -u
+sudo ln -sfn /run/resolvconf/resolv.conf /etc/resolv.conf
+```
+
+Verify:
+
+```bash
+ls -l /etc/resolv.conf
+cat /etc/resolv.conf
+```
+
+Expected result:
+
+- `/etc/resolv.conf` points to `/run/resolvconf/resolv.conf`.
+- DHCP-provided DNS servers appear first.
+- `1.1.1.1` and `8.8.8.8` appear after DHCP DNS as fallbacks.
+- `114.114.114.114` and `options edns0 trust-ad` are gone unless provided by DHCP or another `resolvconf` source.
+
+Rollback:
+
+```bash
+sudo rm -f /etc/resolv.conf
+sudo cp -a /etc/resolv.conf.qidi-static.backup /etc/resolv.conf
+
+sudo cp -a /etc/resolvconf/resolv.conf.d/head.backup /etc/resolvconf/resolv.conf.d/head 2>/dev/null || true
+sudo cp -a /etc/resolvconf/resolv.conf.d/tail.backup /etc/resolvconf/resolv.conf.d/tail 2>/dev/null || true
+
+sudo resolvconf -u
+```
+
 ### Bluetooth
 
 Easily able to disable bluetooth:
