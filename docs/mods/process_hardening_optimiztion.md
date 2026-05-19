@@ -17,9 +17,9 @@ deb-src http://deb.debian.org/debian bullseye-updates main contrib
 
 ### DNS Resolution
 
-Some QIDI images ship `/etc/resolv.conf` as a static file with hardcoded public resolvers instead of a symlink to `resolvconf` output. In that state libc uses the static file directly, so DHCP DNS collected by `dhcpcd`/`resolvconf` is ignored.
+QIDI is shipping `/etc/resolv.conf` as a static file with hardcoded public resolvers instead of a symlink to `resolvconf` output. In that state libc uses the static file directly, so DHCP DNS collected by `dhcpcd`/`resolvconf` is ignored.
 
-Observed stock resolver path:
+Stock resolver path:
 
 ```text
 glibc/nsswitch: files dns
@@ -29,7 +29,7 @@ glibc/nsswitch: files dns
 114.114.114.114 first, 8.8.8.8 fallback
 ```
 
-The stock file may also include `options edns0 trust-ad`. `trust-ad` does not validate DNSSEC on the printer; it preserves the upstream resolver's Authenticated Data bit, which means the printer is trusting the recursive resolver's assertion.  And with `114.114.114.114` being a Chinese DNS server, this is sketchy.
+The stock file also includes `options edns0 trust-ad`. `trust-ad` preserves the upstream resolver's Authenticated Data bit, which means the printer is trusting the recursive resolver's assertion.  And with `114.114.114.114` being a Chinese DNS server, this is sketchy.
 
 To use DHCP/router DNS first, with Cloudflare and Google DNS as fallbacks:
 
