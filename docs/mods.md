@@ -3,6 +3,7 @@
 ## Hardware
 
 * [Bed Adjustment Wrench](https://makerworld.com/en/models/2851433-qidi-max-4-bed-adjustment-wrench-improved?from=search)
+* [D3P Riser](https://cults3d.com/en/3d-model/tool/d3p-riser-for-qidi-max-4) (paid; supports holding two Qidi Boxes and the Polar Cooler)
 * [Non-Vented Riser](https://www.printables.com/model/1652444-qidi-max-4-non-vented-riser-by-sac3d)
 * [Pneumatic Fitting Push Tool](https://makerworld.com/en/models/2757808-pneumatic-fitting-push-tool-for-qidi-max4?from=search)
 * [Polar Cooler](./polar_cooler.md#mods)
