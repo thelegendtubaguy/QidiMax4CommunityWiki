@@ -2,6 +2,8 @@
 
 ## Hardening
 
+For SSH access, OS baseline information, stock process list, and stock APT sources, see [System Access and Information](../ssh_os.md).
+
 ### APT Sources
 
 By default APT sources are configured to the University of Science and Technology of China source mirrors. Suggested you update this to more standard mirrors for performance and less reliance on China. You can do that by editing `/etc/apt/sources.list` to:
