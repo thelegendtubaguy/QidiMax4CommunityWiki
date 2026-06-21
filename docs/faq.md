@@ -2,6 +2,7 @@
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
 - [How can I make sure that spool runout with the Qidi Box will do what I want?](#qidi-box-spool-runout-behavior)
+- [How do I bypass the box and use an external spool?](#bypass-qidi-box-external-spool)
 - [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
 - [Can I control the RGB light under the heated bed?](#rgb-light-under-heated-bed)
 - [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
@@ -47,6 +48,23 @@ In Fluidd, open `Control Box`. Click `AUTO` on the active spool to see the autom
 ![Qidi Box automatic reload cycle](../assets/qidi_box_control_box_auto_reload.png)
 
 ![Qidi Box config settings](../assets/qidi_box_control_box_settings.png)
+
+<a name="bypass-qidi-box-external-spool"></a>
+## How do I bypass the box and use an external spool?
+
+In Fluidd's console, disable Qidi Box filament handling:
+
+```gcode
+SAVE_VARIABLE VARIABLE=enable_box VALUE=0
+```
+
+Load the external spool manually before starting the print. With `enable_box = 0`, startup and runout handling use the external-filament path instead of Qidi Box loading, unloading, automatic reload, or slot switching.
+
+To enable the box again:
+
+```gcode
+SAVE_VARIABLE VARIABLE=enable_box VALUE=1
+```
 
 <a name="fan-control-console-gcode"></a>
 ## How do I control the fans via the console or gcode? What are all the fan addresses?
