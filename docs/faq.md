@@ -1,12 +1,12 @@
 # FAQ
+- [Can I control the RGB light under the heated bed?](#rgb-light-under-heated-bed)
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
 - [How can I make sure that spool runout with the Qidi Box will do what I want?](#qidi-box-spool-runout-behavior)
-- [How do I bypass the box and use an external spool?](#bypass-qidi-box-external-spool)
-- [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
-- [Can I control the RGB light under the heated bed?](#rgb-light-under-heated-bed)
 - [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
 - [How do I adjust the heat bed corner screws?](#how-do-i-adjust-the-heat-bed-corner-screws)
+- [How do I bypass the box and use an external spool?](#bypass-qidi-box-external-spool)
+- [How do I control the fans via the console or gcode? What are all the fan addresses?](#fan-control-console-gcode)
 - [How do I get root access?](#how-do-i-get-root-access)
 - [How do I keep the polar cooler tube from rubbing the glass?](#how-do-i-keep-the-polar-cooler-tube-from-rubbing-the-glass)
 - [How do I remove the output PTFE tube from the box hub?](#remove-output-ptfe-tube-box-hub)
@@ -19,10 +19,15 @@
 - [Where can I download the original models that Qidi shipped with the machine?](#download-original-models)
 - [Where can I find stock/vanilla Klipper configs after I messed with them?](#stock-klipper-configs)
 - [Where is the WiFi antenna located?](#wifi-antenna-location)
-- [Why is the printer not respecting my DHCP DNS settings?](#dhcp-dns-settings)
 - [Why are OTA updates not working on my new Max 4?](#new-max4-ota-updates)
 - [Why don't I see my bed mesh in Fluidd?](#enable-fluidd-bed-mesh)
 - [Why is my bed skirt warping?](#bed-skirt-warping)
+- [Why is the printer not respecting my DHCP DNS settings?](#dhcp-dns-settings)
+
+<a name="rgb-light-under-heated-bed"></a>
+## Can I control the RGB light under the heated bed?
+
+Yes. See [NeoPixel Control](./neopixel_control.md).
 
 <a name="qidi-box-drying-while-printing"></a>
 ## Can I use the Qidi Box's drying function while printing?
@@ -49,6 +54,16 @@ In Fluidd, open `Control Box`. Click `AUTO` on the active spool to see the autom
 
 ![Qidi Box config settings](../assets/qidi_box_control_box_settings.png)
 
+<a name="how-do-i-adjust-the-belts-on-the-max-4"></a>
+## How do I adjust the belts on the Max 4?
+
+The Max 4 uses auto tensioners. See [this page](https://wiki.qidi3d.com/en/Max4/Adjustment-belt).
+
+<a name="how-do-i-adjust-the-heat-bed-corner-screws"></a>
+## How do I adjust the heat bed corner screws?
+
+See [this page](./heated_bed_screws.md).
+
 <a name="bypass-qidi-box-external-spool"></a>
 ## How do I bypass the box and use an external spool?
 
@@ -70,21 +85,6 @@ SAVE_VARIABLE VARIABLE=enable_box VALUE=1
 ## How do I control the fans via the console or gcode? What are all the fan addresses?
 
 See [this page](./fan_assignments.md).
-
-<a name="rgb-light-under-heated-bed"></a>
-## Can I control the RGB light under the heated bed?
-
-Yes. See [NeoPixel Control](./neopixel_control.md).
-
-<a name="how-do-i-adjust-the-belts-on-the-max-4"></a>
-## How do I adjust the belts on the Max 4?
-
-The Max 4 uses auto tensioners. See [this page](https://wiki.qidi3d.com/en/Max4/Adjustment-belt).
-
-<a name="how-do-i-adjust-the-heat-bed-corner-screws"></a>
-## How do I adjust the heat bed corner screws?
-
-See [this page](./heated_bed_screws.md).
 
 <a name="how-do-i-get-root-access"></a>
 ## How do I get root access?
@@ -148,11 +148,6 @@ It comes off the AP board in the top left of the printer and goes toward the fro
 
 ![WiFi antenna location](../assets/wifi_antenna_location.png)
 
-<a name="dhcp-dns-settings"></a>
-## Why is the printer not respecting my DHCP DNS settings?
-
-See [DNS Resolution](./mods/process_hardening_optimiztion.md#dns-resolution) in the process hardening doc.
-
 <a name="new-max4-ota-updates"></a>
 ## Why are OTA updates not working on my new Max 4?
 
@@ -169,3 +164,8 @@ You need to check "Enable Full Display" in your Fluidd settings.
 ## Why is my bed skirt warping?
 
 See [this page](./faq/bed_skirt_warping.md).
+
+<a name="dhcp-dns-settings"></a>
+## Why is the printer not respecting my DHCP DNS settings?
+
+See [DNS Resolution](./mods/process_hardening_optimiztion.md#dns-resolution) in the process hardening doc.
