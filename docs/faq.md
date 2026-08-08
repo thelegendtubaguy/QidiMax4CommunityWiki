@@ -2,6 +2,7 @@
 - [Can I control the RGB light under the heated bed?](#rgb-light-under-heated-bed)
 - [Can I use the Qidi Box's drying function while printing?](#qidi-box-drying-while-printing)
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
+- [Does the Polar Cooler send any feedback to the printer?](#polar-cooler-feedback)
 - [How can I make sure that spool runout with the Qidi Box will do what I want?](#qidi-box-spool-runout-behavior)
 - [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
 - [How do I adjust the heat bed corner screws?](#how-do-i-adjust-the-heat-bed-corner-screws)
@@ -42,6 +43,11 @@ You can use the Qidi Box's heater, but do **not** use the drying function while 
 No, the design of the printer avoids this entirely.
 
 ![Waste Chute Parking](../assets/waste_chute_parking.jpg)
+
+<a name="polar-cooler-feedback"></a>
+## Does the Polar Cooler send any feedback to the printer?
+
+No. It is simply on or off.
 
 <a name="qidi-box-spool-runout-behavior"></a>
 ## How can I make sure that spool runout with the Qidi Box will do what I want?
