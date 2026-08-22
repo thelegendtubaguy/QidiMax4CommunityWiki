@@ -19,6 +19,13 @@ This daughter board carries the connectors for the Qidi Box, polar cooler, and r
 ### Max 4 Qidi Box Hub
 See [this page](./max_4_qidi_box_hub.md).
 
+### Hotend Fan
+![Hotend fan](../assets/hotend_fan.jpg)
+
+* Brand: Ruiapple
+* Model: DC3010HBC24
+* Power: DC 24V 0.08A
+
 ### Chamber Heat and Exhaust Fans
 ![Chamber Exhaust and Heater Fans](../assets/chamber_exhaust_heater_fan.jpg)
 
