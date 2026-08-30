@@ -3,6 +3,7 @@
 ## Hardware
 
 * [Bed Adjustment Wrench](https://makerworld.com/en/models/2851433-qidi-max-4-bed-adjustment-wrench-improved?from=search)
+* [Cable Chain Support Bracket](https://cults3d.com/en/3d-model/various/qidi-max-4-cable-chain-support-bracket-2-part-upgrade) (raises the cable chain to prevent it from catching on the enclosure)
 * [D3P Riser](https://cults3d.com/en/3d-model/tool/d3p-riser-for-qidi-max-4) (paid; supports holding two Qidi Boxes and the Polar Cooler)
 * [Non-Vented Riser](https://www.printables.com/model/1652444-qidi-max-4-non-vented-riser-by-sac3d)
 * [Aux Fan Nozzle](https://www.printables.com/model/1761149-qidi-max4-x-max-4-aux-fan-nozzle/files)
