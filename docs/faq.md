@@ -4,6 +4,7 @@
 - [Does the Max 4 toolhead hit a wall when moving away from the waste chute like the Q2?](#max4-toolhead-wall-hit-q2)
 - [Does the Polar Cooler send any feedback to the printer?](#polar-cooler-feedback)
 - [How can I make sure that spool runout with the Qidi Box will do what I want?](#qidi-box-spool-runout-behavior)
+- [How do I add filaments to the screen app and Fluidd?](#add-custom-filaments)
 - [How do I adjust the belts on the Max 4?](#how-do-i-adjust-the-belts-on-the-max-4)
 - [How do I adjust the heat bed corner screws?](#how-do-i-adjust-the-heat-bed-corner-screws)
 - [How do I bypass the box and use an external spool?](#bypass-qidi-box-external-spool)
@@ -59,6 +60,24 @@ In Fluidd, open `Control Box`. Click `AUTO` on the active spool to see the autom
 ![Qidi Box automatic reload cycle](../assets/qidi_box_control_box_auto_reload.png)
 
 ![Qidi Box config settings](../assets/qidi_box_control_box_settings.png)
+
+<a name="add-custom-filaments"></a>
+## How do I add filaments to the screen app and Fluidd?
+
+Custom filaments are defined in a JSON file on the printer. To add one:
+
+1. [SSH into the printer](./ssh_os.md#ssh-access).
+2. Back up the filament config file:
+
+   ```bash
+   cp /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json.bak
+   ```
+
+3. Edit `/home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json` and add your filament. The easiest approach is to copy an existing entry and change its values.
+4. Give the new filament a unique `filament_id`. You can make one up, but it **must** start with `QFL` and must not match any existing ID in the file.
+5. Restart the printer.
+
+After the restart, the new filament will be available on the printer's screen and in Fluidd.
 
 <a name="how-do-i-adjust-the-belts-on-the-max-4"></a>
 ## How do I adjust the belts on the Max 4?
