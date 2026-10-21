@@ -64,18 +64,19 @@ In Fluidd, open `Control Box`. Click `AUTO` on the active spool to see the autom
 <a name="add-custom-filaments"></a>
 ## How do I add filaments to the screen app and Fluidd?
 
-Custom filaments are defined in a JSON file on the printer. To add one:
+Custom filaments are defined in `/home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json` on the printer.
 
-1. [SSH into the printer](./ssh_os.md#ssh-access).
-2. Back up the filament config file:
+If you have the [Qidi Max 4 Optimized configs](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized) installed, you can edit this file directly in Fluidd: open `Configuration Files`, click `qidi_filament_config`, and edit `filament-0.4.json`. Otherwise, [SSH into the printer](./ssh_os.md#ssh-access) and edit it there. Back it up first:
 
-   ```bash
-   cp /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json.bak
-   ```
+```bash
+cp /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json.bak
+```
 
-3. Edit `/home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json` and add your filament. The easiest approach is to copy an existing entry and change its values.
-4. Give the new filament a unique `filament_id`. You can make one up, but it **must** start with `QFL` and must not match any existing ID in the file.
-5. Restart the printer.
+To add a filament:
+
+1. Add a new entry to the file. The easiest approach is to copy an existing entry and change its values.
+2. Give the new filament a unique `filament_id`. You can make one up, but it **must** start with `QFL` and must not match any existing ID in the file.
+3. Restart the printer.
 
 After the restart, the new filament will be available on the printer's screen and in Fluidd.
 
