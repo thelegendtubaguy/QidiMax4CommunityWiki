@@ -4,6 +4,33 @@
 
 For SSH access, OS baseline information, stock process list, and stock APT sources, see [System Access and Information](../ssh_os.md).
 
+### ADB (Android Debug Bridge)
+
+> [!WARNING]
+> Stock firmware runs `adbd` as `root`, listening on TCP port `5555` on all interfaces with no authentication. Anyone on the same network can get a root shell on the printer without a password. Changing the `qidi` password does not help, because ADB does not use it.
+
+`adbd` is started by `usbdevice.service`, a Rockchip leftover that configures the board's USB gadget port with ADB as its only function (`USB_FUNCS="adb"`). Nothing in QIDI's client software or `algo_app` references ADB, and printing is unaffected when it is off. The USB-stick port is a separate host port and keeps working.
+
+To disable:
+
+```bash
+sudo systemctl disable --now usbdevice
+```
+
+To check that it is off (should print nothing):
+
+```bash
+sudo ss -tlnp | grep 5555
+```
+
+To re-enable later, for example if QIDI support asks for ADB access:
+
+```bash
+sudo systemctl enable --now usbdevice
+```
+
+Firmware updates may re-enable it, so re-check after updating.
+
 ### APT Sources
 
 By default APT sources are configured to the University of Science and Technology of China source mirrors. Suggested you update this to more standard mirrors for performance and less reliance on China. You can do that by editing `/etc/apt/sources.list` to:
