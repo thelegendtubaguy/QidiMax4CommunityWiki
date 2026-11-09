@@ -1,49 +1,180 @@
 # Max 4 Closed-Loop X/Y Motors and Step Loss
 
-Qidi advertises the Max 4's XY motion system as using `FOC closed-loop stepper motors`. The shipped config, custom Klipper modules, and runtime logs show the printer has host-visible XY closed-loop hardware, periodic status polling, coder-related values, and fault handling tied to those values. The Max 4 does **NOT** have position/step-loss correction/recovery.
+Qidi advertises the Max 4's XY motion system as using `FOC closed-loop stepper motors`. Each X and Y motor has its own driver board with an encoder, and that driver does run field-oriented control. But the loop closes inside the driver, not in Klipper. A motor that slips stays behind and reports how far behind it is, and stock QIDI software never asks. **Stock firmware does not detect or recover from XY step loss**, though both are possible in principle.
 
-On the Max 4, `FOC closed-loop` is best read as motor-level feedback and supervision for the X and Y motors.
+Everything here applies to QIDI firmware `01.01.07.01`, with mainboard MCU `02.01.01.12` and closed-loop driver `03.01.10.15`. It comes from the decompiled driver and mainboard firmware, QIDI's Klipper modules, and tests on a Max 4.
 
-## Reading `FOC Closed-Loop`
+## Summary
 
-FOC stands for **field-oriented control**. It is a motor-control method that uses rotor-position feedback and current control to drive the motor phases more precisely. In practice, that usually means:
+- **FOC is real and always on.** The driver measures both motor phase currents and steers the current vector from the encoder angle. QIDI's normal mode already does this; there is no FOC mode to switch on.
+- **Slips are permanent.** A slipping motor falls behind by whole step cycles (4 full steps, 0.78 mm of belt each) and stays there. The driver doesn't move the motor back.
+- **The driver knows, Klipper doesn't.** The driver keeps an exact position error. QIDI's software never reads it, so a slip shifts the rest of the print with no alarm.
+- **Fast diagonals can slip.** Klipper limits toolhead speed, not motor speed. On a CoreXY a diagonal turns one motor about 1.41 times as fast as the toolhead, and back-and-forth diagonals at 800 mm/s made the X motor slip on a test printer.
+- **Detection is possible.** [Valve Oil](https://github.com/thelegendtubaguy/Valve-Oil) adds an optional [step-loss monitor](https://github.com/thelegendtubaguy/Valve-Oil/blob/main/docs/tools.md#xy-step-loss-monitor). It reads the position error and pauses the print when a motor slips.
+- **Recovery is theoretically possible.** A slip is a whole number of step cycles, and the driver reports exactly how many. So Klipper's position could be shifted by that amount and the print continued, without re-homing. The moves already queued before the slip is noticed still print out of place. Valve Oil's development branch is trying this.
 
-- smoother commutation
-- quieter operation
-- less vibration
-- better torque use
-- better behavior at higher speed
+## How the driver runs the motor
 
-The key distinction is where the loop closes. On the Max 4, the available material is consistent with a loop that closes at the motor-controller level. The controller uses feedback to run the motor.  Klipper does not receive corrected cartesian position.
+The driver is an STM32F3-class board. It reads step/dir pulses from the mainboard, like any stepper driver, plus commands over an RS-485 bus.
 
-## Observed Capabilities
+Each control tick, the driver does the following.
 
-- the Max 4 has custom host-supervised XY closed-loop hardware
-- the host talks to separate X and Y controller devices over a vendor-specific interface
-- the host can poll those controllers periodically
-- the host can read motor status and coder-related data
-- the host can log a numeric coder value for each motor
-- the host can trigger shutdown when a coder-related threshold is exceeded
-- the system exposes a `motor position error` condition and a command to reset it
+1. Works out the commanded motor angle from the step pulses it has received, and the measured angle from the encoder.
+2. Picks the field angle, normally the measured angle plus a correction based on the position error.
+3. Reads both phase currents from two ADCs, averaging 4 samples each.
+4. Regulates each phase's current toward that angle and sets the PWM duty for both H-bridges.
 
-Runtime logs can show host-visible numeric coder output after running `COMP_CODER STEPPER=y`:
+That is encoder-commutated current control, the same thing MKS sells as FOC on its SERVO42D/57D drivers.
 
-- `Stepper y coder value: -29300`
-- `Transition to shutdown state: Stepper y coder value -29300 exceeds threshold 1000, please check the stepper status`
+The target current isn't fixed at `run_current`. The driver scales it between a minimum and `run_current` as it runs.
 
-This means smarter motor drive behavior and host-visible fault supervision. It does not mean the machine is capable of correcting Klipper's cartesian XY position during a print.
+The correction toward the commanded angle is limited to about a quarter of an electrical cycle. So the driver pushes the motor toward the nearest point where the commanded and measured angles line up. It doesn't unwind whole cycles it has already lost.
 
-## CoreXY Interpretation
+### Motor and encoder numbers
 
-The Max 4 is a CoreXY machine, so cartesian X and Y motion do not map 1:1 to individual motor motion.
+| Value | Number |
+|---|---|
+| Motor | 1.8°, 50 pole pairs |
+| Encoder position (`0x31`) | 16384 counts per motor revolution, about 420 counts per mm of belt with `rotation_distance: 39` |
+| Position error (`0x39`) | 51200 counts per revolution. 1024 counts is one electrical cycle, which is 4 full steps or 0.78 mm of belt. |
 
-An X-only cartesian move can still rotate the `stepper_y` motor. Because of that, a changed `Stepper y coder value` after mixed XY jogging is not, by itself, evidence of spontaneous Y drift or a false alarm. Motor-level coder deltas have to be interpreted through CoreXY motor mixing.
+## Work modes
 
-## Technical Basis
+Driver command `0x82` selects one of six work modes. The mode is saved in the driver's flash, and changing it reboots the driver.
 
-### Shipped config
+| Mode | Motion input | Loop | Notes |
+|---|---|---|---|
+| 0 | step/dir | open | Plain stepper, no encoder correction |
+| 1 | step/dir | closed | **What the Max 4 runs** |
+| 2 | step/dir | open | Extra alignment flag set |
+| 3 | step/dir | closed | Extra alignment flag set; QIDI calls this "enforce mode" |
+| 4 | serial commands | closed | |
+| 5 | serial commands | closed | Extra alignment flag set |
 
-The shipped config exposes more than plain `step/dir/enable` for X and Y. It contains dedicated X/Y closed-loop sections:
+- **What QIDI uses.** QIDI's `closed_loop.so` has `EXIT_ENFORCE_MODE` (mode 1) and `ENTER_ENFORCE_MODE` (mode 3). The stock homing macro runs `EXIT_ENFORCE_MODE` for X and Y at the start of every home, and nothing stock ever runs `ENTER_ENFORCE_MODE`. So the Max 4 always runs in mode 1. These two commands are the only `0x82` traffic in `klippy.log`.
+- **The extra flag isn't an FOC switch.** Modes 1 and 3 use the same current control. The flag changes one threshold, which lets an encoder-alignment/search routine run further than it otherwise can.
+- **Serial modes 4 and 5 can't work with Klipper.** In those modes the driver ignores step pulses and takes its motion from bus commands. Klipper plans motion as precisely timed step pulses, and this bus is a shared 38400-baud link where each command takes milliseconds.
+
+## Step loss
+
+**What a slip looks like.** On a test printer, the X axis was jogged into an obstacle. Within about 0.12 s of the blocked move, the position error jumped by whole electrical cycles, +14.03 on the X motor and +21.00 on the Y motor. The error then stayed there. That matched about 13.7 mm of X lost.
+
+QIDI's software noticed nothing. The status query (`0x37`) kept reporting normal, nothing was logged, and Klipper didn't shut down.
+
+**Normal motion isn't a slip.** During moves the error swings a little (about ±45 counts at 10 mm/s, up to about 140 counts at 100–300 mm/s) and returns exactly to its resting value afterwards.
+
+**After homing.** Homing leaves a resting error of roughly `1024 × k` counts, where `k` is a small whole number that changes from one home to the next. Stall homing pushes the carriage against the frame while Klipper keeps stepping, and the motor settles a whole number of cycles off. Across five homes, the encoder position at the homed point varied by about 0.3 mm (X) and 0.9 mm (Y) of cartesian motion. That is the repeatability of stall homing.
+
+**`RESET_MOTOR_POSITION_ERROR`.** This is a QIDI command that broadcasts `0x57` to both drivers. It redefines each driver's commanded position to match the encoder, so the error drops to under one microstep.
+
+- **It doesn't move the motor**, and it doesn't change Klipper's position. It only clears the record of a slip.
+- **It briefly cuts motor current to zero.** The cut lasts at least 30 ms, so only send it while the axis is at rest.
+
+**CoreXY speed limit.** Klipper's `max_velocity` limits the toolhead. On a pure diagonal one motor turns 1.41 times as fast. At QIDI's 800 mm/s limit, that motor's belt runs at about 1130 mm/s. On the test printer, back-and-forth diagonals at 800 mm/s and 30000 mm/s² made the X motor slip by about 77 step cycles. At 500 mm/s nothing slipped.
+
+## What stock QIDI software checks
+
+| Check | What it does |
+|---|---|
+| Status poll | Every `query_cycle` seconds (10 in the stock config), sends `0x37` (status) and `0x40` (version) to each motor. |
+| No reply | Three missed replies log a `No response` warning and mark the motor `not connect`. Klipper does **not** shut down, and one good reply clears it. |
+| Status alarms | Overcurrent (`2`), phase loss (`3`), and overvoltage (`4`) shut Klipper down. The driver also has stall-trip (`6`) and over-temperature (`8`) codes. |
+| `COMP_CODER` | Reads the encoder position (`0x31`) and shuts Klipper down if it moved more than `1000` counts (about 2.4 mm of belt) since the last read. It compares two encoder readings, not commanded vs. measured position, so any normal move between reads trips it. |
+
+QIDI never reads the position error (`0x39`), so stock firmware can't see a slip.
+
+**Driver stall trip.** The driver has its own stall trip. When it's enabled (`0x88`), it cuts the motor output if the position error reaches the stall tolerance (`0x89`, in full steps). QIDI sends `0x88` at startup. In the forced-slip test above, the trip didn't fire.
+
+## Bus and protocol
+
+### Wiring and framing
+
+- **Physical bus.** The mainboard (STM32F407) runs a hardware UART (UART5) at 38400 baud, 8N1, with RS-485 direction control on PB13. X is address `1` and Y is address `3`. Address `0` is broadcast.
+- **Requests.** `FA addr func data… sum`, where `sum` is the low byte of the sum of all preceding bytes.
+- **Replies.** `FB addr func data… sum`. Broadcast and group-addressed frames get no reply.
+- **Klipper side.** Klipper sends frames with `cl_send` and receives replies as `cl_idx_rx`. QIDI's modules allow one command in flight at a time, with a 0.5 s timeout.
+
+### Mainboard reply delay
+
+The stock mainboard firmware knows the reply lengths of only `0x37` and `0x40`, which arrive in about 6–7 ms. Every other reply, including position error, encoder position, temperature, and each write's acknowledgement, waits for 50 ms of bus silence and takes about 60–70 ms. The driver itself answers within about 1 ms.
+
+Valve Oil includes an optional [mainboard firmware fix](https://github.com/thelegendtubaguy/Valve-Oil/blob/main/docs/firmware.md#mainboard-closed-loop-reply-fix) that brings those replies down to 7–8 ms.
+
+### Function codes
+
+Reply length is the whole frame.
+
+| Code | Meaning | Reply bytes |
+|---|---|---|
+| `0x00 <code>` | Read the stored value of setting `<code>` (QIDI's `READ_MOTOR_CURRENT` sends `00 83`) | varies |
+| `0x31` | Encoder position, signed 48-bit, relative to the last `0x92` zero | 10 |
+| `0x33` | Step pulses received, relative to the last `0x92` zero | 8 |
+| `0x37` | Status (`1` = normal) | 5 |
+| `0x39` | Position error, signed 32-bit, 51200 per revolution | 8 |
+| `0x3b` | Temperature, as a raw 12-bit thermistor count that rises with heat (see [Motor temperature](#motor-temperature)) | 6 |
+| `0x40` | Firmware and hardware version | 8 |
+| `0x47` / `0x48` | All settings / all status | 38 / 24 |
+| `0x51` | Homing trigger thresholds (`sval`, `eval`) | 5 |
+| `0x55` | `1` switches to homing current, `2` back to run current | 5 |
+| `0x56` | `1` starts stall homing, `2` stops it | 5 |
+| `0x57` | Reset position error (see [Step loss](#step-loss)) | 5, none on broadcast |
+| `0x82` | Work mode (see [Work modes](#work-modes)) | 5 |
+| `0x83` | Run current, mA (capped at 4000 or 5200 depending on board) | 5 |
+| `0x84` | Microsteps | 5 |
+| `0x88` | Stall-trip enable | 5 |
+| `0x89` | Stall tolerance | 5 |
+| `0x92` | Zero the `0x31`/`0x33` readouts (no motion, no effect on `0x39`) | 5 |
+| `0x93` | Homing current, mA | 5 |
+
+**Commands to avoid.** These write flash, reboot the driver, or lock it up.
+
+| Code | What it does |
+|---|---|
+| `0x3f` | Factory reset, which erases the driver's settings |
+| `0x41` | Reboots the driver. QIDI sends it at Klipper connect. |
+| `0x50` | Data `1` rewrites the boot-flag page and reboots. Data `2` makes the driver ignore everything except `0x50`. |
+| `0x61` | Reboots into the bootloader |
+| `0x8a` | Permanently changes the driver's baud rate, so the mainboard can't reach it at 38400 any more |
+| `0xe1` | Factory test loop. Disables the debug pins and blocks until `0xe8` arrives. |
+
+### QIDI G-code commands
+
+Each command takes `STEPPER=x` or `STEPPER=y` and sends one frame to that motor.
+
+| Command | Sends |
+|---|---|
+| `READ_MOTOR_STATUS` | `0x37` |
+| `READ_MOTOR_VERSION` | `0x40` |
+| `READ_CODER_ERROR` | `0x39` |
+| `READ_MOTOR_TEMP` | `0x3b` |
+| `READ_MOTOR_CURRENT` | `0x00 0x83` |
+| `COMP_CODER` | `0x31` |
+| `CLEAR_CODER` | `0x92` |
+| `OPEN_TLR_ERROR` / `CLOSE_TLR_ERROR` | `0x88` with `1` / `0` |
+| `SET_STALL_TOLERANCE` | `0x89` |
+| `SET_OPERATING_CURRENT` | `0x83` |
+| `SET_MICROSTEPPING` | `0x84` |
+| `SET_HOMING_CURRENT` | `0x93` |
+| `SET_HOMING_STATE` | `0x55` |
+| `SET_HOMING_MODE` | `0x56` |
+| `ENTER_ENFORCE_MODE` / `EXIT_ENFORCE_MODE` | `0x82` with `3` / `1` |
+| `SET_RESET_MOTOR` | `0x41` |
+| `RESET_MOTOR_POSITION_ERROR` | `0x57` broadcast to both motors (takes no `STEPPER=`) |
+
+Most replies show up in `klippy.log` only as markers such as `$0x39`. `READ_MOTOR_TEMP` also logs the value, as `Stepper x motor temp value: 2605`.
+
+## Klipper modules
+
+Firmware `01.01.07.01` ships the closed-loop code as compiled Cython modules in `~/klipper/klippy/extras/`.
+
+```text
+closed_loop.so     # [closed_loop x] / [closed_loop y]: per-motor commands, status polling, alarms
+cl_interface.so    # [cl_interface]: shared bus, send queue, firmware upgrades
+```
+
+Older firmware shipped thin `closed_loop.py` and `cl_interface.py` wrappers around `closed_loop_core` and `cl_interface_core` modules.
+
+This is the stock config.
 
 ```ini
 [cl_interface]
@@ -51,218 +182,60 @@ mcu = mcu
 addr = 0
 
 [closed_loop x]
-addr = 1
-run_current = 1200
-hold_current = 800
-home_current = 700
-microstep: 32
-query_cycle: 5
+addr:1
+run_current:1500
+hold_current:800
+home_current:700
+microstep:32
+query_cycle:10
+homing_trigger_sval:400
+homing_trigger_eval:4
+trigger_current:400
+trigger_time:2
+trigger_speed:50
 
 [closed_loop y]
 addr = 3
-run_current = 1200
-hold_current = 800
-home_current = 700
-microstep: 32
-query_cycle: 5
+# same values as X
 ```
 
-That supports three direct observations:
+`[stepper_x]` and `[stepper_y]` remain ordinary step/dir steppers, and there are no `[tmc2209 stepper_x]`/`[tmc2209 stepper_y]` sections, so `DUMP_TMC` can't read X or Y.
 
-- the host talks to dedicated X/Y closed-loop controllers
-- those controllers are separately addressable
-- the host polls them on a regular interval
+## Homing
 
-At the same time, the normal kinematics still include standard X/Y stepper definitions:
+QIDI homes X and Y by stall detection inside the driver.
 
-```ini
-[stepper_x]
-step_pin: PC14
-dir_pin: !PC13
-enable_pin: !PC15
-microsteps: 32
-rotation_distance: 39
-full_steps_per_rotation: 200
-```
+1. `SET_HOMING_STATE VALUE=1` (`0x55`) switches to the homing current.
+2. `SET_HOMING_MODE VALUE=1` (`0x56`) starts the driver's stall watch.
+3. When the driver detects the stall (thresholds `homing_trigger_sval` and `homing_trigger_eval`, sent with `0x51`), the driver pulses its endstop output for 20 ms, and Klipper sees the endstop trigger.
+4. `VALUE=2` on both commands puts the run current and normal mode back.
 
-No standard `[tmc2209 stepper_x]` or `[tmc2209 stepper_y]` blocks were found. The only visible `tmc2209` sections are for the two Z steppers. That means X and Y are not exposed like a typical Klipper plus TMC setup where `DUMP_TMC` can read driver registers directly.
+## CoreXY interpretation
 
-### Homing macros
+The Max 4 is a CoreXY machine, so cartesian X and Y moves don't map 1:1 to the motors named `stepper_x` and `stepper_y`. An X-only move turns both motors. On the test printer, X+20 mm moved both motors' encoders by −8400 counts, and Y+20 mm moved them by −8400 and +8400. A changed encoder value or position error on one motor has to be read through that mixing; it doesn't mean that cartesian axis moved.
 
-The homing macros switch X and Y between homing and working states:
+## Motor temperature
 
-```ini
-SET_HOMING_STATE STEPPER=y VALUE=2
-SET_HOMING_STATE STEPPER=x VALUE=2
-SET_HOMING_MODE  STEPPER=y VALUE=2
-SET_HOMING_MODE  STEPPER=x VALUE=2
-```
+Each driver has a thermistor and reports it with `0x3b` (`READ_MOTOR_TEMP`). The value is a raw 12-bit ADC count, not degrees, and it rises as the driver heats up. A `0` means the driver has no sensor fitted.
 
-That shows Klipper can do more than send plain step pulses. It can supervise at least some X/Y closed-loop controller state during homing.
+The driver's own over-temperature table, and QIDI's warnings in `klippy.log`, use these counts.
 
-### Custom Klipper modules
+| °C | Count |
+|---|---|
+| 60 | 3104 |
+| 70 | 3360 |
+| 80 | 3552 |
+| 90 | 3696 |
+| 100 | 3776 |
+| 110 | 3872 |
+| 120 | 3936 |
 
-The Max 4's Klipper tree includes custom extras for the closed-loop system:
+A cold, idle Max 4 in a 26 °C chamber reads 2600–2700. That doesn't fit any standard thermistor curve through the table above, so counts below 3104 can't be converted to °C yet.
 
-```text
-closed_loop.py
-cl_interface.py
-closed_loop_core.cpython-39-aarch64-linux-gnu.so
-cl_interface_core.cpython-39-aarch64-linux-gnu.so
-```
+## Open questions
 
-The visible Python wrappers are minimal:
-
-```python
-from . import closed_loop_core
-
-def load_config_prefix(config):
-    return closed_loop_core.ClosedLoopCurrentHelper(config)
-```
-
-```python
-from . import cl_interface_core
-
-def load_config(config):
-    return cl_interface_core.CL_Interface_bitbang(config)
-```
-
-This is custom Qidi functionality, most of which lives in compiled modules.
-
-Symbol inspection of those compiled modules exposes names such as:
-
-```text
-closed_loop_core:
-  cmd_READ_MOTOR_STATUS
-  cmd_READ_CODER_ERROR
-  cmd_SET_STALL_TOLERANCE
-  cmd_CLOSE_TLR_ERROR
-  cmd_OPEN_TLR_ERROR
-  cmd_CLEAR_CODER
-  cmd_COMP_CODER
-  get_status
-  msg_read_coder
-  msg_read_coder_error
-  msg_read_motor_status
-  encoder_alarm
-  phase_loss
-  overcurrent
-  high_temp_alarm
-  stepper_out_of_tolerance_alarm
-  reports_error_state
-  No_response_from_stepper
-
-cl_interface_core:
-  msg_query_motor_status
-  get_status
-  cmd_RESET_MOTOR_POSITION_ERROR
-  msg_reset_motor_position_error
-```
-
-This likely means:
-
-- the host can query motor status
-- the system exposes coder or encoder-related commands and error handling
-- the system exposes tolerance and stall handling
-- the system exposes multiple alarm states
-- the system exposes a distinct `motor position error` condition with an explicit reset command
-
-Python introspection shows these classes:
-
-```python
-from klippy.extras import closed_loop_core
-from klippy.extras import cl_interface_core
-
-dir(closed_loop_core)
-# ['ClosedLoop', 'ClosedLoopCurrentHelper', ...]
-
-dir(cl_interface_core)
-# ['CL_Interface_bitbang', 'MotorFirmwareUpgradeHelper', 'PrinterCLMutexes', ...]
-```
-
-The most relevant methods on `ClosedLoopCurrentHelper` are:
-
-```text
-cmd_READ_MOTOR_STATUS
-cmd_READ_CODER_ERROR
-cmd_SET_STALL_TOLERANCE
-cmd_SET_HOMING_MODE
-cmd_SET_HOMING_STATE
-cmd_SET_OPERATING_CURRENT
-cmd_SET_QUERY_CYCLE
-get_status
-msg_read_motor_status
-msg_read_coder
-msg_read_coder_error
-msg_set_the_stall_tolerance
-```
-
-The most relevant methods on `CL_Interface_bitbang` are:
-
-```text
-cmd_RESET_MOTOR_POSITION_ERROR
-get_status
-msg_query_motor_status
-msg_reset_motor_position_error
-register_closedloop_addr
-register_closedloop_name
-send_command
-```
-
-### Runtime behavior
-
-Recent runtime logs after running `COMP_CODER STEPPER=x`, `COMP_CODER STEPPER=y`, moving the head, and then running one of those commands again showed:
-
-```text
-Stepper y coder value: -29300
-Transition to shutdown state: Stepper y coder value -29300 exceeds threshold 1000, please check the stepper status
-cl_send oid=0 write=b'\xfa\x031.'
-cl_idx_rx rx_data=b'\xfb\x031\xff\xff\xff\xff\x8d\x8cD'
-```
-`COMP_CODER` is a real vendor command path, the host can receive a numeric motor-level coder value, the closed-loop path is not limited to status bits alone, the firmware will force a shutdown when a coder-related threshold is exceeded
-
-### Bus details
-
-The X/Y closed-loop bus appears to use RS485 at `38400`, with `0xfa` request framing, `0xfb` response framing, `0x37` for motor-status queries, `0x40` for encoder-position queries, and commands such as `READ_MOTOR_CURRENT`, `READ_MOTOR_TEMP`, and `COMP_CODER`.
-
-Live traffic shows `0xfa` request framing and `0xfb` response framing, the host logs numeric coder output, threshold-based shutdown is visible, and the `COMP_CODER`, `0x37`, and `0x40` paths fit the current runtime evidence.
-
-## Details Still Unverified
-
-The available material still does not establish these details:
-
-- what fields `get_status()` returns at runtime
-- the exact units, scaling, and sign conventions for the observed coder values
-- how `COMP_CODER` compares commanded and measured motor position
-- what threshold and hysteresis logic are used before shutdown
-- what `READ_MOTOR_CURRENT` and `READ_MOTOR_TEMP` return in practice
-- whether `M84` changes the X/Y controller current or only host-side state
-
-Those unknowns affect implementation details and make it challenging to proceed further.
-
-## Reference Commands
-
-The observations above came from commands such as:
-
-```bash
-nm -C ~/klipper/klippy/extras/closed_loop_core.cpython-39-aarch64-linux-gnu.so | grep -Ei 'step|loss|error|alarm|encoder|position|follow|home|current|state|query'
-nm -C ~/klipper/klippy/extras/cl_interface_core.cpython-39-aarch64-linux-gnu.so | grep -Ei 'step|loss|error|alarm|encoder|position|follow|home|current|state|query|addr|mode'
-
-python3 -c "from klippy.extras import closed_loop_core; print(dir(closed_loop_core.ClosedLoopCurrentHelper))"
-python3 -c "from klippy.extras import cl_interface_core; print(dir(cl_interface_core.CL_Interface_bitbang))"
-```
-
-The following probes were less revealing:
-
-```bash
-python3 -c "from klippy.extras import closed_loop_core; help(closed_loop_core.ClosedLoopCurrentHelper.get_status)"
-python3 -c "from klippy.extras import cl_interface_core; help(cl_interface_core.CL_Interface_bitbang.get_status)"
-```
-
-Those `help()` calls only exposed the method signature:
-
-```text
-get_status(self, eventtime)
-```
-
-They did not expose return fields, docstrings, or other semantics.
+- the control loop's rate and gains
+- what the extra alignment flag in modes 2, 3 and 5 is for
+- whether mode 3 behaves any differently from mode 1 on the printer
+- which `0x88` stall-trip setting QIDI sends at startup
+- the °C curve below 60 °C

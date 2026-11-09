@@ -66,7 +66,7 @@ In Fluidd, open `Control Box`. Click `AUTO` on the active spool to see the autom
 
 Custom filaments are defined in `/home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json` on the printer.
 
-If you have the [Qidi Max 4 Optimized configs](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized) installed, you can edit this file directly in Fluidd: open `Configuration Files`, click `qidi_filament_config`, and edit `filament-0.4.json`. Otherwise, [SSH into the printer](./ssh_os.md#ssh-access) and edit it there. Back it up first:
+If you have [Valve Oil](https://github.com/thelegendtubaguy/Valve-Oil) installed, you can edit this file directly in Fluidd: open `Configuration Files`, click `qidi_filament_config`, and edit `filament-0.4.json`. Otherwise, [SSH into the printer](./ssh_os.md#ssh-access) and edit it there. Back it up first:
 
 ```bash
 cp /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json /home/qidi/QIDI_Client/resource/filament_config/filament-0.4.json.bak
@@ -140,7 +140,7 @@ See [the polar cooler control section](./polar_cooler.md#console-and-gcode-contr
 <a name="max4-closed-loop-step-loss"></a>
 ## I saw the Max 4 has closed-loop X/Y motors, can it recover from step loss?
 
-`FOC closed-loop` on the Max 4 appears to mean feedback-based X/Y motor control for smoother, quieter, and more stable motion. The current evidence does not show printer-level detection and recovery from XY position loss such as skipped steps, belt slip, or collisions. See [this page](./faq/max4_closed_loop_step_loss.md) for more information.
+Not on stock firmware. Each X/Y motor's driver runs field-oriented control from its own encoder, but it doesn't undo a slip. A motor that skips stays behind by whole steps and reports how far, and QIDI's software never asks. [Valve Oil](https://github.com/thelegendtubaguy/Valve-Oil) adds an optional monitor that reads it and pauses the print on a slip. Recovery is theoretically possible too, because the reported slip is exact, so Klipper's position could be corrected by that amount without re-homing. See [this page](./faq/max4_closed_loop_step_loss.md) for more information.
 
 <a name="is-the-chamber-mostly-air-tight"></a>
 ## Is the chamber mostly air tight?

@@ -36,4 +36,4 @@ These fans seem to not be controllable via the console.  If this is wrong, open 
 | --- | --- | --- |
 | `hotend_fan` | Hotend heatsink fan | Defined as `[heater_fan hotend_fan]`, tied to `extruder`, with `heater_temp: 50.0`, so it comes on automatically. |
 | `chamber_fan` | Chamber fan | Defined as `[controller_fan chamber_fan]`; automatic, tied to the chamber heater potentially. |
-| `board_fan` | Electronics / board cooling fan | Defined as `[controller_fan board_fan]`; hardcoded to 60% by default, 90% in the Qidi Optimized Configs repo |
+| `board_fan` | Electronics / board cooling fan | Defined as `[controller_fan board_fan]`; hardcoded to 60% |

@@ -16,6 +16,6 @@
 
 ## Software
 
-* [Klipper and Slicer GCode optimizations](https://github.com/thelegendtubaguy/Qidi-Max-4-Optimized)
+* [Valve Oil](https://github.com/thelegendtubaguy/Valve-Oil) (Klipper and slicer G-code optimizations)
 * [Making qidiclient suck less](./mods/making_qidiclient_suck_less.md) (reduces CPU usage)
 * [Process Hardening and Optimization](./mods/process_hardening_optimiztion.md)
